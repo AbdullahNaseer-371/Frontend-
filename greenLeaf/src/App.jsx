@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
-import Categories from "./pages/Categories";
+import Categories from "./pages/Category";
 import Users from "./pages/Users";
 
 // Auth components
