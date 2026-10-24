@@ -6,10 +6,10 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
 import Categories from "./pages/Category";
-import Users from "./pages/Users";
+import Users from "./pages/User";
 
 // Auth components
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ProtectedRoute from "./components/auth/ProtectedRoutes";
 import RoleRoute from "./components/auth/RoleRoute";
 
 // Layout
