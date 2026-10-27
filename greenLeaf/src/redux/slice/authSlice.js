@@ -10,7 +10,10 @@ import {
     deleteUser,
 } from "../thunks/auth.thunks";
 
-const storedUser = localStorage.getItem("user");
+const storedUser =
+    typeof localStorage?.getItem === "function"
+        ? localStorage.getItem("user")
+        : null;
 
 const initialState = {
     user: storedUser

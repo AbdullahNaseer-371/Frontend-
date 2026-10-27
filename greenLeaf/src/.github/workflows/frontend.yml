@@ -3,31 +3,33 @@ name: GreenLeaf Frontend CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  build:
-    name: Test and Build Frontend
+  test-and-build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test -- --passWithNoTests
+      - name: Run Vitest tests
+        run: npm run test
 
-      - name: Build frontend
+      - name: Build production frontend
         run: npm run build
