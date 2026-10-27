@@ -1,18 +1,41 @@
-- name: Setup Node.js
-  uses: actions/setup-node@v4
-  with:
-    node-version: 22
-    cache: npm
-    cache-dependency-path: greenLeaf/package-lock.json
 
-- name: Install dependencies
-  working-directory: greenLeaf
-  run: npm ci
+name: GreenLeaf Frontend CI
 
-- name: Run Vitest tests
-  working-directory: greenLeaf
-  run: npm run test
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
 
-- name: Build production frontend
-  working-directory: greenLeaf
-  run: npm run build
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: greenLeaf
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: greenLeaf/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest tests
+        run: npm run test
+
+      - name: Build production frontend
+        run: npm run build
+
