@@ -2,19 +2,19 @@ import api from "./axios.api";
 
 const authApi = {
     register: async (userData) => {
-        const response = await api.post("/users/register", userData);
+        const response = await api.post("/auht/register", userData);
 
         return response.data;
     },
 
     login: async (credentials) => {
-        const response = await api.post("/users/login", credentials);
+        const response = await api.post("/auth/login", credentials);
 
         return response.data;
     },
 
     refreshToken: async (refreshToken) => {
-        const response = await api.post("/users/refresh", {
+        const response = await api.post("/auth/refresh", {
             refreshToken,
         });
 
@@ -28,13 +28,13 @@ const authApi = {
     },
 
     getCurrentUser: async () => {
-        const response = await api.get("/users/me");
+        const response = await api.get("/auth/me");
 
         return response.data;
     },
 
     getUsers: async (params = {}) => {
-        const response = await api.get("/users", {
+        const response = await api.get("/auth", {
             params,
         });
 
@@ -42,14 +42,14 @@ const authApi = {
     },
 
     getUserById: async (id) => {
-        const response = await api.get(`/users/${id}`);
+        const response = await api.get(`/auth/${id}`);
 
         return response.data;
     },
 
     updateUser: async (id, userData) => {
         const response = await api.put(
-            `/users/${id}`,
+            `/auth/${id}`,
             userData
         );
 
@@ -57,7 +57,7 @@ const authApi = {
     },
 
     deleteUser: async (id) => {
-        const response = await api.delete(`/users/${id}`);
+        const response = await api.delete(`/auth/${id}`);
 
         return response.data;
     },
