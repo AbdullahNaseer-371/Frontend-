@@ -53,15 +53,19 @@ const Login = () => {
         }));
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const result = await login(formData);
+        try {
+            await login(formData).unwrap();
 
-        if (!result?.error) {
             navigate("/dashboard", { replace: true });
+        } catch (error) {
+            console.error("Login failed:", error);
         }
     };
+
 
     return (
         <div className="login-page">
