@@ -24,7 +24,26 @@ export const loginUser = createAsyncThunk(
         try {
             const response = await authApi.login(credentials);
 
+            const accessToken = response?.data?.accessToken;
+            const refreshToken = response?.data?.refreshToken;
+
+            if (!accessToken) {
+                console.error("Login response:", response);
+
+                return rejectWithValue(
+                    "Access token not found in login response"
+                );
+            }
+
+            // Store tokens
+            localStorage.setItem("token", accessToken);
+
+            if (refreshToken) {
+                localStorage.setItem("refreshToken", refreshToken);
+            }
+
             return response;
+
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message ||

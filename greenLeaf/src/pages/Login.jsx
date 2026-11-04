@@ -11,6 +11,7 @@ import {
     Row,
     Spinner,
 } from "react-bootstrap";
+import "../styles/login.css"    
 import { FaLock, FaLeaf, FaUser } from "react-icons/fa";
 
 import useAuth from "../hooks/useAuth";

@@ -1,0 +1,220 @@
+
+/* =========================================
+   GREENLEAF LOGIN - GREEN & GOLD THEME
+========================================= */
+
+:root {
+    --green-primary: #123D2B;
+    --green-dark: #0B291E;
+    --green-leaf: #25834D;
+    --green-light: #55A96B;
+    --green-soft: #EDF4EF;
+    --gold: #C59332;
+    --text-dark: #19382A;
+    --text-muted: #718176;
+
+    --glass-bg: rgba(255, 255, 255, 0.56);
+    --glass-border: rgba(255, 255, 255, 0.75);
+    --glass-shadow: 0 10px 35px rgba(18, 61, 43, 0.09);
+}
+
+/* Login page */
+
+.login-page {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 15px;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(85, 169, 107, 0.20),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 15%,
+            rgba(197, 147, 50, 0.15),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            var(--green-primary),
+            var(--green-dark)
+        );
+}
+
+/* Login card */
+
+.login-card {
+    width: 100%;
+    max-width: 440px;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 22px !important;
+
+    background: rgba(255, 255, 255, 0.94) !important;
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    overflow: hidden;
+
+    box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.20),
+        0 5px 20px rgba(18, 61, 43, 0.10) !important;
+}
+
+.login-card .card-body {
+    padding: 38px;
+}
+
+/* Logo */
+
+.login-logo {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--green-soft);
+    color: var(--green-leaf);
+
+    border: 1px solid rgba(85, 169, 107, 0.20);
+    border-radius: 20px;
+
+    font-size: 30px;
+
+    box-shadow: 0 6px 18px rgba(18, 61, 43, 0.08);
+}
+
+/* Heading */
+
+.login-card h2 {
+    color: var(--green-primary);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.login-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Form labels */
+
+.login-card .form-label {
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+/* Input groups */
+
+.login-card .input-group-text {
+    background: var(--green-soft);
+    border: 1px solid #dce8df;
+    color: var(--green-leaf);
+    padding: 11px 14px;
+}
+
+.login-card .form-control {
+    min-height: 46px;
+    border: 1px solid #dce8df;
+    font-size: 14px;
+    color: var(--text-dark);
+    box-shadow: none;
+}
+
+.login-card .form-control:focus {
+    border-color: var(--green-leaf);
+    box-shadow: 0 0 0 3px rgba(37, 131, 77, 0.13);
+    z-index: 2;
+}
+
+.login-card .form-control::placeholder {
+    color: #a3b1a7;
+}
+
+/* Login button */
+
+.login-btn {
+    min-height: 49px;
+
+    background: var(--green-leaf) !important;
+    border: 1px solid var(--green-leaf) !important;
+    border-radius: 10px !important;
+
+    color: #ffffff !important;
+    font-size: 15px;
+    font-weight: 700;
+
+    transition: all 0.25s ease;
+}
+
+.login-btn:hover {
+    background: var(--green-primary) !important;
+    border-color: var(--green-primary) !important;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 7px 18px rgba(18, 61, 43, 0.20);
+}
+
+.login-btn:disabled {
+    opacity: 0.7;
+    transform: none;
+    cursor: not-allowed;
+}
+
+/* Gold accent */
+
+.login-card::before {
+    content: "";
+    display: block;
+    height: 5px;
+
+    background: linear-gradient(
+        90deg,
+        var(--green-leaf),
+        var(--gold),
+        var(--green-light)
+    );
+}
+
+/* Error alert */
+
+.login-card .alert {
+    font-size: 13px;
+    border-radius: 9px;
+    border: none;
+}
+
+/* Responsive */
+
+@media (max-width: 576px) {
+    .login-page {
+        padding: 20px 12px;
+    }
+
+    .login-card .card-body {
+        padding: 28px 22px;
+    }
+
+    .login-card h2 {
+        font-size: 24px;
+    }
+
+    .login-logo {
+        width: 62px;
+        height: 62px;
+        font-size: 26px;
+        border-radius: 17px;
+    }
+}

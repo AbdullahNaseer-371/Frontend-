@@ -1,0 +1,270 @@
+
+/* =========================================
+   GREENLEAF SIDEBAR
+========================================= */
+
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    position: sticky;
+    top: 0;
+    left: 0;
+
+    padding: 26px 18px 20px;
+
+    background: linear-gradient(
+        180deg,
+        var(--green-dark) 0%,
+        var(--green-primary) 100%
+    );
+
+    color: #ffffff;
+
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+
+    box-shadow: 8px 0 30px rgba(11, 41, 30, 0.08);
+
+    z-index: 100;
+    overflow-y: auto;
+}
+
+/* =========================================
+   BRAND
+========================================= */
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 4px 8px 22px;
+}
+
+.sidebar-brand-icon {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(197, 147, 50, 0.16);
+    color: var(--gold);
+
+    border: 1px solid rgba(197, 147, 50, 0.3);
+    border-radius: 14px;
+
+    font-size: 23px;
+}
+
+.sidebar-brand-text h2 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 750;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+}
+
+.sidebar-brand-text span {
+    display: block;
+    margin-top: 4px;
+
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* =========================================
+   DIVIDER
+========================================= */
+
+.sidebar-divider {
+    height: 1px;
+    margin: 0 5px 25px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* =========================================
+   NAVIGATION
+========================================= */
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sidebar-section-title {
+    margin: 12px 10px 8px;
+
+    color: rgba(255, 255, 255, 0.43);
+
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+}
+
+/* Navigation Link */
+
+.sidebar-link {
+    min-height: 47px;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    position: relative;
+
+    padding: 0 14px;
+
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    border-radius: 10px;
+
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s ease;
+}
+
+/* Icons */
+
+.sidebar-icon {
+    min-width: 18px;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.55);
+
+    transition: color 0.25s ease;
+}
+
+/* Hover */
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+.sidebar-link:hover .sidebar-icon {
+    color: var(--gold);
+}
+
+/* Active Link */
+
+.sidebar-link.active {
+    background: linear-gradient(
+        90deg,
+        rgba(85, 169, 107, 0.25),
+        rgba(85, 169, 107, 0.10)
+    );
+
+    color: #ffffff;
+    font-weight: 650;
+
+    box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.sidebar-link.active .sidebar-icon {
+    color: var(--gold);
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.sidebar-footer {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    margin-top: auto;
+    padding: 16px 10px 5px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-footer-icon {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: rgba(197, 147, 50, 0.15);
+    color: var(--gold);
+
+    font-size: 16px;
+}
+
+.sidebar-footer strong {
+    display: block;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.sidebar-footer span {
+    display: block;
+    margin-top: 4px;
+
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 10px;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 992px) {
+    .sidebar {
+        width: 230px;
+        min-width: 230px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 75px;
+        min-width: 75px;
+        padding: 20px 10px;
+    }
+
+    .sidebar-brand {
+        justify-content: center;
+        padding: 4px 0 22px;
+    }
+
+    .sidebar-brand-text,
+    .sidebar-section-title,
+    .sidebar-link span,
+    .sidebar-footer > div:last-child {
+        display: none;
+    }
+
+    .sidebar-link {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .sidebar-icon {
+        font-size: 19px;
+    }
+
+    .sidebar-footer {
+        justify-content: center;
+        padding: 15px 0 5px;
+    }
+}

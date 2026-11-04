@@ -1,6 +1,9 @@
+
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://green-leaf-nursery-five.vercel.app/api";
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000/api";
 
 const api = axios.create({
     baseURL: API_URL,
@@ -13,9 +16,10 @@ const api = axios.create({
 // Attach access token to every request
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("token");
 
         if (token) {
+            config.headers = config.headers || {};
             config.headers.Authorization = `Bearer ${token}`;
         }
 
@@ -24,6 +28,7 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+// Refresh token management
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -45,15 +50,19 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        // Do not refresh for login/register/refresh itself
+        if (!originalRequest) {
+            return Promise.reject(error);
+        }
+
+        // Do not refresh authentication requests
         const isAuthRequest =
-            originalRequest?.url?.includes("/users/login") ||
-            originalRequest?.url?.includes("/users/register") ||
-            originalRequest?.url?.includes("/users/refresh");
+            originalRequest.url?.includes("/auth/login") ||
+            originalRequest.url?.includes("/auth/register") ||
+            originalRequest.url?.includes("/auth/refresh");
 
         if (
             error.response?.status !== 401 ||
-            originalRequest?._retry ||
+            originalRequest._retry ||
             isAuthRequest
         ) {
             return Promise.reject(error);
@@ -61,15 +70,16 @@ api.interceptors.response.use(
 
         originalRequest._retry = true;
 
-        // Another request is already refreshing
+        // Wait if another request is already refreshing
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
-                failedQueue.push({
-                    resolve,
-                    reject,
-                });
-            }).then((token) => {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
+                failedQueue.push({ resolve, reject });
+            }).then((newToken) => {
+                originalRequest.headers =
+                    originalRequest.headers || {};
+
+                originalRequest.headers.Authorization =
+                    `Bearer ${newToken}`;
 
                 return api(originalRequest);
             });
@@ -78,54 +88,70 @@ api.interceptors.response.use(
         isRefreshing = true;
 
         try {
-            const refreshToken = localStorage.getItem("refreshToken");
+            const refreshToken =
+                localStorage.getItem("refreshToken");
 
             if (!refreshToken) {
                 throw new Error("Refresh token not found");
             }
 
+            // Refresh access token
             const response = await axios.post(
-                `${API_URL}/users/refresh`,
+                `${API_URL}/auth/refresh`,
+                { refreshToken },
                 {
-                    refreshToken,
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
                 }
             );
 
             const newAccessToken =
-                response.data?.data?.accessToken ||
-                response.data?.accessToken;
+                response.data?.data?.accessToken;
 
             const newRefreshToken =
-                response.data?.data?.refreshToken ||
-                response.data?.refreshToken;
+                response.data?.data?.refreshToken;
 
             if (!newAccessToken) {
-                throw new Error("New access token not received");
+                throw new Error(
+                    "New access token not received"
+                );
             }
 
-            localStorage.setItem("accessToken", newAccessToken);
+            // Save rotated tokens
+            localStorage.setItem("token", newAccessToken);
 
-            // Important because your backend uses refresh-token rotation
             if (newRefreshToken) {
-                localStorage.setItem("refreshToken", newRefreshToken);
+                localStorage.setItem(
+                    "refreshToken",
+                    newRefreshToken
+                );
             }
 
+            // Resolve queued requests
             processQueue(null, newAccessToken);
+
+            originalRequest.headers =
+                originalRequest.headers || {};
 
             originalRequest.headers.Authorization =
                 `Bearer ${newAccessToken}`;
 
             return api(originalRequest);
+
         } catch (refreshError) {
             processQueue(refreshError, null);
 
-            localStorage.removeItem("accessToken");
+            // Clear invalid authentication data
+            localStorage.removeItem("token");
             localStorage.removeItem("refreshToken");
             localStorage.removeItem("user");
 
             window.location.href = "/login";
 
             return Promise.reject(refreshError);
+
         } finally {
             isRefreshing = false;
         }
