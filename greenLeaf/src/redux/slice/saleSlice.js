@@ -9,6 +9,12 @@ import {
     fetchSalesReport,
 } from "../thunks/saleThunks";
 
+import {
+    normalizeCollection,
+    normalizeSingle,
+    normalizeReport,
+} from "../normalizeResponse";
+
 const initialState = {
     sales: [],
     selectedSale: null,
@@ -33,7 +39,6 @@ const initialState = {
 
 const saleSlice = createSlice({
     name: "sales",
-
     initialState,
 
     reducers: {
@@ -53,7 +58,7 @@ const saleSlice = createSlice({
     extraReducers: (builder) => {
         builder
 
-            // SALES
+            // FETCH SALES
             .addCase(fetchSales.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -62,49 +67,43 @@ const saleSlice = createSlice({
             .addCase(fetchSales.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const result = normalizeCollection(
+                    action.payload,
+                    "sales"
+                );
 
-                state.sales =
-                    data?.sales ||
-                    data ||
-                    [];
-
-                if (data?.pagination) {
-                    state.pagination =
-                        data.pagination;
-                }
+                state.sales = result.items;
+                state.pagination = result.pagination;
             })
 
             .addCase(fetchSales.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // SALE BY ID
+            // FETCH SINGLE SALE
             .addCase(fetchSaleById.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
 
             .addCase(fetchSaleById.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
-
-                state.selectedSale =
-                    data?.sale ||
-                    data;
+                state.selectedSale = normalizeSingle(
+                    action.payload,
+                    "sale"
+                );
             })
 
             .addCase(fetchSaleById.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // CREATE
+            // CREATE SALE
             .addCase(createSale.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -114,25 +113,24 @@ const saleSlice = createSlice({
                 state.loading = false;
                 state.success = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const sale = normalizeSingle(
+                    action.payload,
+                    "sale"
+                );
 
-                const sale =
-                    data?.sale ||
-                    data;
-
-                if (sale) {
+                if (sale?._id) {
                     state.sales.unshift(sale);
+                    state.pagination.total += 1;
                 }
             })
 
             .addCase(createSale.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // UPDATE
+            // UPDATE SALE
             .addCase(updateSale.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -142,57 +140,65 @@ const saleSlice = createSlice({
                 state.loading = false;
                 state.success = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const sale = normalizeSingle(
+                    action.payload,
+                    "sale"
+                );
 
-                const updatedSale =
-                    data?.sale ||
-                    data;
+                const index = state.sales.findIndex(
+                    item => item._id === sale?._id
+                );
 
-                if (updatedSale) {
-                    const index =
-                        state.sales.findIndex(
-                            (sale) =>
-                                sale._id ===
-                                updatedSale._id
-                        );
-
-                    if (index !== -1) {
-                        state.sales[index] =
-                            updatedSale;
-                    }
+                if (index !== -1) {
+                    state.sales[index] = sale;
                 }
             })
 
             .addCase(updateSale.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // DELETE
+            // DELETE SALE
             .addCase(deleteSale.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
 
             .addCase(deleteSale.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
 
-                state.sales =
-                    state.sales.filter(
-                        (sale) =>
-                            sale._id !==
-                            action.payload
+                const exists = state.sales.some(
+                    (item) => item._id === action.payload
+                );
+
+                state.sales = state.sales.filter(
+                    (item) => item._id !== action.payload
+                );
+
+                if (exists) {
+                    state.pagination.total = Math.max(
+                        0,
+                        state.pagination.total - 1
                     );
+                }
+
+                if (
+                    state.selectedSale?._id === action.payload
+                ) {
+                    state.selectedSale = null;
+                }
             })
 
             .addCase(deleteSale.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // REPORT
+            // FETCH SALES REPORT
             .addCase(fetchSalesReport.pending, (state) => {
                 state.reportLoading = true;
                 state.reportError = null;
@@ -200,18 +206,14 @@ const saleSlice = createSlice({
 
             .addCase(fetchSalesReport.fulfilled, (state, action) => {
                 state.reportLoading = false;
-
-                const data =
-                    action.payload?.data ||
-                    action.payload;
-
-                state.report = data;
+                state.report = normalizeReport(action.payload);
             })
 
             .addCase(fetchSalesReport.rejected, (state, action) => {
                 state.reportLoading = false;
-                state.reportError = action.payload;
-            });
+                state.reportError =
+                    action.payload || action.error.message;
+            })
     },
 });
 

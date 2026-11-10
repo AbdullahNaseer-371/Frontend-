@@ -1,3 +1,4 @@
+
 import { createSlice } from "@reduxjs/toolkit";
 
 import {
@@ -7,19 +8,28 @@ import {
     deleteCategory,
 } from "../thunks/categoryThunks";
 
+import {
+    normalizeCollection,
+    normalizeSingle,
+} from "../normalizeResponse";
+
 const initialState = {
     categories: [],
 
+    pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pages: 0,
+    },
+
     loading: false,
-
     error: null,
-
     success: false,
 };
 
 const categorySlice = createSlice({
     name: "categories",
-
     initialState,
 
     reducers: {
@@ -35,6 +45,7 @@ const categorySlice = createSlice({
     extraReducers: (builder) => {
         builder
 
+            // FETCH
             .addCase(fetchCategories.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -43,19 +54,19 @@ const categorySlice = createSlice({
             .addCase(fetchCategories.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const result = normalizeCollection(
+                    action.payload,
+                    "categories"
+                );
 
-                state.categories =
-                    data?.categories ||
-                    data ||
-                    [];
+                state.categories = result.items;
+                state.pagination = result.pagination;
             })
 
             .addCase(fetchCategories.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
             // CREATE
@@ -68,22 +79,22 @@ const categorySlice = createSlice({
                 state.loading = false;
                 state.success = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const category = normalizeSingle(
+                    action.payload,
+                    "category"
+                );
 
-                const category =
-                    data?.category ||
-                    data;
-
-                if (category) {
-                    state.categories.push(category);
+                if (category?._id) {
+                    state.categories.unshift(category);
+                    state.pagination.total += 1;
                 }
             })
 
+
             .addCase(createCategory.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
             // UPDATE
@@ -92,36 +103,28 @@ const categorySlice = createSlice({
                 state.error = null;
             })
 
-            .addCase(updateCategory.fulfilled, (state, action) => {
-                state.loading = false;
-                state.success = true;
+        .addCase(updateCategory.fulfilled, (state, action) => {
+            state.loading = false;
+            state.success = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+            const category = normalizeSingle(
+                action.payload,
+                "category"
+            );
 
-                const updatedCategory =
-                    data?.category ||
-                    data;
+            const index = state.categories.findIndex(
+                item => item._id === category?._id
+            );
 
-                if (updatedCategory) {
-                    const index =
-                        state.categories.findIndex(
-                            (category) =>
-                                category._id ===
-                                updatedCategory._id
-                        );
-
-                    if (index !== -1) {
-                        state.categories[index] =
-                            updatedCategory;
-                    }
-                }
-            })
+            if (index !== -1) {
+                state.categories[index] = category;
+            }
+        })
 
             .addCase(updateCategory.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
             // DELETE
@@ -134,17 +137,24 @@ const categorySlice = createSlice({
                 state.loading = false;
                 state.success = true;
 
-                state.categories =
-                    state.categories.filter(
-                        (category) =>
-                            category._id !==
-                            action.payload
+                const previousLength = state.categories.length;
+
+                state.categories = state.categories.filter(
+                    (category) => category._id !== action.payload
+                );
+
+                if (state.categories.length < previousLength) {
+                    state.pagination.total = Math.max(
+                        0,
+                        state.pagination.total - 1
                     );
+                }
             })
 
             .addCase(deleteCategory.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             });
     },
 });

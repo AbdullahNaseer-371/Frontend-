@@ -1,4 +1,9 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import {
+    Navigate,
+    Outlet,
+    useLocation
+} from "react-router-dom";
+
 import useAuth from "../../hooks/useAuth";
 
 const ProtectedRoute = () => {
@@ -6,7 +11,7 @@ const ProtectedRoute = () => {
     const location = useLocation();
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <div>Checking authentication...</div>;
     }
 
     if (!isAuthenticated) {

@@ -26,58 +26,39 @@ const usePlants = () => {
         success,
     } = useSelector((state) => state.plants);
 
-    const getPlants = (params = {}) => {
-        return dispatch(fetchPlants(params));
-    };
+    const getPlants = (params = {}) =>
+        dispatch(fetchPlants(params));
 
-    const getPlant = (id) => {
-        return dispatch(fetchPlantById(id));
-    };
+    const getPlant = (id) =>
+        dispatch(fetchPlantById(id));
 
-    const addPlant = (plantData) => {
-        return dispatch(createPlant(plantData));
-    };
+    const addPlant = (plantData) =>
+        dispatch(createPlant(plantData));
 
-    const editPlant = (id, plantData) => {
-        return dispatch(
-            updatePlant({
-                id,
-                plantData,
-            })
-        );
-    };
+    const editPlant = (id, plantData) =>
+        dispatch(updatePlant({ id, plantData }));
 
-    const removePlant = (id) => {
-        return dispatch(deletePlant(id));
-    };
+    const removePlant = (id) =>
+        dispatch(deletePlant(id));
 
-    const clearError = () => {
-        dispatch(clearPlantError());
-    };
+    const clearError = () => dispatch(clearPlantError());
 
-    const clearSuccess = () => {
-        dispatch(clearPlantSuccess());
-    };
+    const clearSuccess = () => dispatch(clearPlantSuccess());
 
-    const clearSelected = () => {
-        dispatch(clearSelectedPlant());
-    };
+    const clearSelected = () => dispatch(clearSelectedPlant());
 
     return {
         plants,
         selectedPlant,
         pagination,
-
         loading,
         error,
         success,
-
         getPlants,
         getPlant,
         addPlant,
         editPlant,
         removePlant,
-
         clearError,
         clearSuccess,
         clearSelected,

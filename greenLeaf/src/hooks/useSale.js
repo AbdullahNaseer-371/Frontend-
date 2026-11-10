@@ -1,3 +1,5 @@
+
+import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -18,63 +20,89 @@ import {
 const useSales = () => {
     const dispatch = useDispatch();
 
+    // Redux state
     const {
-        sales,
-        selectedSale,
-        report,
-        pagination,
+        sales = [],
+        selectedSale = null,
+        report = null,
+        pagination = {},
 
-        loading,
-        reportLoading,
+        loading = false,
+        reportLoading = false,
 
-        error,
-        reportError,
+        error = null,
+        reportError = null,
 
-        success,
+        success = false,
     } = useSelector((state) => state.sales);
 
-    const getSales = (params = {}) => {
-        return dispatch(fetchSales(params));
-    };
+    // Fetch all sales
+    const getSales = useCallback(
+        (params = {}) => {
+            return dispatch(fetchSales(params));
+        },
+        [dispatch]
+    );
 
-    const getSale = (id) => {
-        return dispatch(fetchSaleById(id));
-    };
+    // Fetch single sale
+    const getSale = useCallback(
+        (id) => {
+            return dispatch(fetchSaleById(id));
+        },
+        [dispatch]
+    );
 
-    const addSale = (saleData) => {
-        return dispatch(createSale(saleData));
-    };
+    // Create sale
+    const addSale = useCallback(
+        (saleData) => {
+            return dispatch(createSale(saleData));
+        },
+        [dispatch]
+    );
 
-    const editSale = (id, saleData) => {
-        return dispatch(
-            updateSale({
-                id,
-                saleData,
-            })
-        );
-    };
+    // Update sale
+    const editSale = useCallback(
+        (id, saleData) => {
+            return dispatch(
+                updateSale({
+                    id,
+                    saleData,
+                })
+            );
+        },
+        [dispatch]
+    );
 
-    const removeSale = (id) => {
-        return dispatch(deleteSale(id));
-    };
+    // Delete sale
+    const removeSale = useCallback(
+        (id) => {
+            return dispatch(deleteSale(id));
+        },
+        [dispatch]
+    );
 
-    const getSalesReport = (params = {}) => {
-        return dispatch(
-            fetchSalesReport(params)
-        );
-    };
+    // Fetch sales report
+    const getSalesReport = useCallback(
+        (params = {}) => {
+            return dispatch(fetchSalesReport(params));
+        },
+        [dispatch]
+    );
 
-    const clearError = () => {
+    // Clear sales error
+    const clearError = useCallback(() => {
         dispatch(clearSaleError());
-    };
+    }, [dispatch]);
 
-    const clearReportError = () => {
+    // Clear report error
+    const clearReportError = useCallback(() => {
         dispatch(clearReportError());
-    };
+    }, [dispatch]);
 
-    const clearSuccess = () => {
+    // Clear success message
+    const clearSuccess = useCallback(() => {
         dispatch(clearSaleSuccess());
-    };
+    }, [dispatch]);
 
     return {
         sales,

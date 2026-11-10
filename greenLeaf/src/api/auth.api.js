@@ -30,7 +30,7 @@ const authApi = {
     getCurrentUser: async () => {
         const response = await api.get("/auth/me");
 
-        return response.data;
+        return response.data.data;
     },
 
     getUsers: async (params = {}) => {
@@ -38,13 +38,13 @@ const authApi = {
             params,
         });
 
-        return response.data;
+        return response.data.data;
     },
 
     getUserById: async (id) => {
         const response = await api.get(`/auth/${id}`);
 
-        return response.data;
+        return response.data.data;
     },
 
     updateUser: async (id, userData) => {
@@ -53,7 +53,7 @@ const authApi = {
             userData
         );
 
-        return response.data;
+        return response.data.data;
     },
 
     deleteUser: async (id) => {

@@ -61,7 +61,33 @@ const Sales = () => {
         page: 1,
         limit: 10,
     });
+    const getPlantName = (plant) => {
+        if (!plant) return "-";
 
+        if (typeof plant === "string") return plant;
+
+        return (
+            plant.name ||
+            plant.plantName ||
+            plant.sku ||
+            plant._id ||
+            "-"
+        );
+    };
+
+    const getSoldByName = (soldBy) => {
+        if (!soldBy) return "-";
+
+        if (typeof soldBy === "string") return soldBy;
+
+        return (
+            soldBy.userName ||
+            soldBy.name ||
+            soldBy.email ||
+            soldBy._id ||
+            "-"
+        );
+    };
     const [showModal, setShowModal] = useState(false);
     const [editingSale, setEditingSale] = useState(null);
 
@@ -130,7 +156,10 @@ const Sales = () => {
         setEditingSale(sale);
 
         setFormData({
-            plantId: sale.plantId?._id || sale.plantId || "",
+            plantId:
+                typeof sale.plantId === "object"
+                    ? sale.plantId?._id || ""
+                    : sale.plantId || "",
             quantity: sale.quantity || "",
             totalPrice: sale.totalPrice || "",
             saleDate: sale.saleDate
@@ -364,9 +393,7 @@ const Sales = () => {
                                             </td>
 
                                             <td>
-                                                {sale.plantId?.name ||
-                                                    sale.plantId ||
-                                                    "-"}
+                                                {getPlantName(sale.plantId)}
                                             </td>
 
                                             <td>
@@ -381,9 +408,7 @@ const Sales = () => {
                                             </td>
 
                                             <td>
-                                                {sale.soldBy?.userName ||
-                                                    sale.soldBy ||
-                                                    "-"}
+                                                {getSoldByName(sale.soldBy)}
                                             </td>
 
                                             <td>

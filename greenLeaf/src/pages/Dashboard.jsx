@@ -13,6 +13,7 @@ import {
 
 import { fetchPlants } from "../redux/thunks/plantThunks";
 import { fetchCategories } from "../redux/thunks/categoryThunks";
+
 import {
     fetchSales,
     fetchSalesReport,
@@ -30,22 +31,26 @@ const formatCurrency = (amount) =>
 const Dashboard = () => {
     const dispatch = useDispatch();
 
+    // PLANTS
     const {
         plants = [],
-        pagination: plantPagination,
+        pagination: plantPagination = {},
         loading: plantsLoading,
         error: plantsError,
     } = useSelector((state) => state.plants);
 
+    // CATEGORIES
     const {
         categories = [],
+        pagination: categoryPagination = {},
         loading: categoriesLoading,
         error: categoriesError,
     } = useSelector((state) => state.categories);
 
+    // SALES
     const {
         sales = [],
-        pagination: salesPagination,
+        pagination: salesPagination = {},
         report,
         loading: salesLoading,
         reportLoading,
@@ -53,37 +58,52 @@ const Dashboard = () => {
         reportError,
     } = useSelector((state) => state.sales);
 
+    // FETCH DASHBOARD DATA
     useEffect(() => {
-        dispatch(fetchPlants({}));
+        dispatch(fetchPlants({ page: 1, limit: 10 }));
         dispatch(fetchCategories({}));
         dispatch(fetchSales({}));
         dispatch(fetchSalesReport({}));
     }, [dispatch]);
 
-    const salesReport = report?.report || {};
+    // REPORT DATA
+    const salesReport = report?.report ?? report ?? {};
 
-    const totalPlants =
-        plantPagination?.total ?? plants.length;
+    // TOTAL COUNTS
+    const totalPlants = Number(
+        plantPagination.total ?? plants.length
+    );
 
-    const totalCategories = categories.length;
+    const totalCategories = Number(
+        categoryPagination.total ?? categories.length
+    );
 
-    const totalSales =
+    const totalSales = Number(
         salesReport.totalSales ??
-        salesPagination?.total ??
-        sales.length;
+        salesPagination.total ??
+        sales.length
+    );
 
-    const totalQuantity =
-        salesReport.totalQuantity ?? 0;
+    const totalQuantity = Number(
+        salesReport.totalQuantity ??
+        salesReport.totalPlantsSold ??
+        0
+    );
 
-    const totalRevenue =
-        salesReport.totalRevenue ?? 0;
+    const totalRevenue = Number(
+        salesReport.totalRevenue ??
+        salesReport.revenue ??
+        0
+    );
 
+    // LOADING
     const loading =
         plantsLoading ||
         categoriesLoading ||
         salesLoading ||
         reportLoading;
 
+    // ERRORS
     const errors = [
         plantsError,
         categoriesError,
@@ -91,6 +111,7 @@ const Dashboard = () => {
         reportError,
     ].filter(Boolean);
 
+    // DASHBOARD CARDS
     const cards = [
         {
             title: "Total Plants",
@@ -99,7 +120,7 @@ const Dashboard = () => {
             detail: "Plants in inventory",
         },
         {
-            title: "Categories",
+            title: "Total Categories",
             value: totalCategories,
             icon: "🪴",
             detail: "Available categories",
@@ -121,6 +142,7 @@ const Dashboard = () => {
     return (
         <Container fluid className="dashboard-page">
 
+            {/* HEADER */}
             <div className="dashboard-header">
                 <div>
                     <span className="dashboard-eyebrow">
@@ -140,18 +162,21 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            {/* ERRORS */}
             {errors.length > 0 && (
                 <Alert variant="danger" className="dashboard-alert">
                     {errors.map((error, index) => (
                         <div key={index}>
                             {typeof error === "string"
                                 ? error
-                                : error?.message || "Unable to load data."}
+                                : error?.message ||
+                                "Unable to load data."}
                         </div>
                     ))}
                 </Alert>
             )}
 
+            {/* LOADING */}
             {loading && (
                 <div className="dashboard-loading">
                     <Spinner animation="border" size="sm" />
@@ -159,6 +184,7 @@ const Dashboard = () => {
                 </div>
             )}
 
+            {/* STAT CARDS */}
             <Row className="g-4">
                 {cards.map((card) => (
                     <Col
@@ -192,7 +218,10 @@ const Dashboard = () => {
                 ))}
             </Row>
 
+            {/* OVERVIEW PANELS */}
             <Row className="mt-4 g-4">
+
+                {/* SALES */}
                 <Col lg={7}>
                     <Card className="dashboard-panel h-100">
                         <Card.Body>
@@ -220,6 +249,7 @@ const Dashboard = () => {
                     </Card>
                 </Col>
 
+                {/* INVENTORY */}
                 <Col lg={5}>
                     <Card className="dashboard-panel h-100">
                         <Card.Body>
@@ -228,22 +258,28 @@ const Dashboard = () => {
                             </h5>
 
                             <div className="overview-row">
-                                <span>Plants</span>
+                                <span>Total Plants</span>
                                 <strong>{totalPlants}</strong>
                             </div>
 
                             <div className="overview-row">
-                                <span>Categories</span>
+                                <span>Total Categories</span>
                                 <strong>{totalCategories}</strong>
                             </div>
 
                             <div className="overview-row">
-                                <span>Inventory Records Loaded</span>
+                                <span>Plant Records Loaded</span>
                                 <strong>{plants.length}</strong>
+                            </div>
+
+                            <div className="overview-row">
+                                <span>Category Records Loaded</span>
+                                <strong>{categories.length}</strong>
                             </div>
                         </Card.Body>
                     </Card>
                 </Col>
+
             </Row>
 
         </Container>

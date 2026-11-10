@@ -1,3 +1,4 @@
+
 import { createSlice } from "@reduxjs/toolkit";
 
 import {
@@ -7,6 +8,11 @@ import {
     updatePlant,
     deletePlant,
 } from "../thunks/plantThunks";
+
+import {
+    normalizeCollection,
+    normalizeSingle,
+} from "../normalizeResponse";
 
 const initialState = {
     plants: [],
@@ -26,7 +32,6 @@ const initialState = {
 
 const plantSlice = createSlice({
     name: "plants",
-
     initialState,
 
     reducers: {
@@ -46,36 +51,30 @@ const plantSlice = createSlice({
     extraReducers: (builder) => {
         builder
 
-            // GET ALL
+            // FETCH PLANTS
             .addCase(fetchPlants.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-
             .addCase(fetchPlants.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const result = normalizeCollection(
+                    action.payload,
+                    "plants"
+                );
 
-                state.plants =
-                    data?.plants ||
-                    data ||
-                    [];
-
-                if (data?.pagination) {
-                    state.pagination =
-                        data.pagination;
-                }
+                state.plants = result.items;
+                state.pagination = result.pagination;
             })
 
             .addCase(fetchPlants.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // GET ONE
+            // FETCH SINGLE PLANT
             .addCase(fetchPlantById.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -84,21 +83,19 @@ const plantSlice = createSlice({
             .addCase(fetchPlantById.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
-
-                state.selectedPlant =
-                    data?.plant ||
-                    data;
+                state.selectedPlant = normalizeSingle(
+                    action.payload,
+                    "plant"
+                );
             })
 
             .addCase(fetchPlantById.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // CREATE
+            // CREATE PLANT
             .addCase(createPlant.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -108,25 +105,24 @@ const plantSlice = createSlice({
                 state.loading = false;
                 state.success = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const plant = normalizeSingle(
+                    action.payload,
+                    "plant"
+                );
 
-                const plant =
-                    data?.plant ||
-                    data;
-
-                if (plant) {
+                if (plant?._id) {
                     state.plants.unshift(plant);
+                    state.pagination.total += 1;
                 }
             })
 
             .addCase(createPlant.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // UPDATE
+            // UPDATE PLANT
             .addCase(updatePlant.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -136,55 +132,49 @@ const plantSlice = createSlice({
                 state.loading = false;
                 state.success = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const plant = normalizeSingle(
+                    action.payload,
+                    "plant"
+                );
 
-                const updatedPlant =
-                    data?.plant ||
-                    data;
+                const index = state.plants.findIndex(
+                    item => item._id === plant?._id
+                );
 
-                if (updatedPlant) {
-                    const index =
-                        state.plants.findIndex(
-                            (plant) =>
-                                plant._id ===
-                                updatedPlant._id
-                        );
-
-                    if (index !== -1) {
-                        state.plants[index] =
-                            updatedPlant;
-                    }
+                if (index !== -1) {
+                    state.plants[index] = plant;
                 }
             })
 
             .addCase(updatePlant.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             })
 
-            // DELETE
+            // DELETE PLANT
             .addCase(deletePlant.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-
             .addCase(deletePlant.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
 
-                state.plants =
-                    state.plants.filter(
-                        (plant) =>
-                            plant._id !==
-                            action.payload
-                    );
+                state.plants = state.plants.filter(
+                    plant => plant._id !== action.payload
+                );
+
+                state.pagination.total = Math.max(
+                    0,
+                    state.pagination.total - 1
+                );
             })
 
             .addCase(deletePlant.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error =
+                    action.payload || action.error.message;
             });
     },
 });

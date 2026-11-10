@@ -10,25 +10,15 @@ import {
     deleteUser,
 } from "../thunks/auth.thunks";
 
-const storedUser =
-    typeof localStorage?.getItem === "function"
-        ? localStorage.getItem("user")
-        : null;
+const storedUser = localStorage.getItem("user");
+const storedToken = localStorage.getItem("accessToken");
 
 const initialState = {
-    user: storedUser
-        ? JSON.parse(storedUser)
-        : null,
-
+    user: storedUser ? JSON.parse(storedUser) : null,
     users: [],
-
-    isAuthenticated:
-        !!localStorage.getItem("accessToken"),
-
+    isAuthenticated: !!storedToken && !!storedUser,
     loading: false,
-
     error: null,
-
     success: false,
 };
 
@@ -62,8 +52,11 @@ const authSlice = createSlice({
             state.user = null;
             state.isAuthenticated = false;
             state.users = [];
+            state.loading = false;
+            state.error = null;
 
             localStorage.removeItem("accessToken");
+            localStorage.removeItem("token");
             localStorage.removeItem("refreshToken");
             localStorage.removeItem("user");
         },
@@ -150,13 +143,9 @@ const authSlice = createSlice({
             .addCase(getCurrentUser.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
-
-                const user =
-                    data?.user ||
-                    data;
+                state.users = Array.isArray(action.payload)
+                    ? action.payload
+                    : [];
 
                 state.user = user;
                 state.isAuthenticated = true;

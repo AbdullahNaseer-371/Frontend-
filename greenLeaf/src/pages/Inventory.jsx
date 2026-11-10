@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from "react";
+
 import {
     Alert,
     Badge,
@@ -14,6 +16,7 @@ import {
     Spinner,
     Table,
 } from "react-bootstrap";
+
 import {
     FaEdit,
     FaPlus,
@@ -26,6 +29,16 @@ import useCategories from "../hooks/useCategory";
 import usePermissions from "../hooks/usePermission";
 
 const Inventory = () => {
+
+    // Image states
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+
+    // Modal states
+    const [showModal, setShowModal] = useState(false);
+    const [editingPlant, setEditingPlant] = useState(null);
+
+    // Plant hooks
     const {
         plants,
         pagination,
@@ -40,17 +53,25 @@ const Inventory = () => {
         clearSuccess,
     } = usePlants();
 
+    // Category hooks
     const {
         categories,
         getCategories,
     } = useCategories();
 
+    // Extra safety: always use an array
+    const categoryList = Array.isArray(categories)
+        ? categories
+        : [];
+
+    // Permissions
     const {
         canCreate,
         canUpdate,
         canDelete,
     } = usePermissions();
 
+    // Filters
     const [filters, setFilters] = useState({
         search: "",
         category: "",
@@ -59,20 +80,23 @@ const Inventory = () => {
         limit: 10,
     });
 
-    const [showModal, setShowModal] = useState(false);
-    const [editingPlant, setEditingPlant] = useState(null);
-
+    // Form data
     const [formData, setFormData] = useState({
         name: "",
         category: "",
         price: "",
-        quantity: "",
+        stock: "",
         status: "active",
     });
 
+    // Load categories
+    useEffect(() => {
+        getCategories();
+    }, []);
+
+    // Load plants when filters change
     useEffect(() => {
         getPlants(filters);
-        getCategories();
     }, [
         filters.search,
         filters.category,
@@ -81,6 +105,7 @@ const Inventory = () => {
         filters.limit,
     ]);
 
+    // Success handling
     useEffect(() => {
         if (success) {
             setShowModal(false);
@@ -90,9 +115,14 @@ const Inventory = () => {
                 name: "",
                 category: "",
                 price: "",
-                quantity: "",
+                stock: "",
                 status: "active",
             });
+
+            setImage(null);
+            setImagePreview(null);
+
+            getPlants(filters);
 
             const timer = setTimeout(() => {
                 clearSuccess();
@@ -102,6 +132,16 @@ const Inventory = () => {
         }
     }, [success]);
 
+    // Image preview cleanup
+    useEffect(() => {
+        return () => {
+            if (imagePreview?.startsWith("blob:")) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
+
+    // Filter handler
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
 
@@ -112,34 +152,79 @@ const Inventory = () => {
         }));
     };
 
-    const handleOpenAdd = () => {
-        setEditingPlant(null);
-
+    // Reset form
+    const resetForm = () => {
         setFormData({
             name: "",
             category: "",
             price: "",
-            quantity: "",
+            stock: "",
             status: "active",
         });
 
+        setImage(null);
+        setImagePreview(null);
+    };
+
+    // Open Add Modal
+    const handleOpenAdd = () => {
+        setEditingPlant(null);
+        resetForm();
+        clearError();
         setShowModal(true);
     };
 
+    // Open Edit Modal
     const handleOpenEdit = (plant) => {
         setEditingPlant(plant);
 
         setFormData({
             name: plant.name || "",
-            category: plant.category?._id || plant.category || "",
-            price: plant.price || "",
-            quantity: plant.quantity || "",
+            category:
+                plant.category?._id ||
+                plant.category ||
+                "",
+            price: plant.price ?? "",
+            stock: plant.stock ?? "",
             status: plant.status || "active",
         });
 
+        setImage(null);
+        setImagePreview(plant.image?.url || null);
+
+        clearError();
         setShowModal(true);
     };
 
+    // Image handler
+    const handleImageChange = (e) => {
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Only JPG, PNG and WEBP images are allowed.");
+            e.target.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image size must be less than 5MB.");
+            e.target.value = "";
+            return;
+        }
+
+        setImage(file);
+        setImagePreview(URL.createObjectURL(file));
+    };
+
+    // Form handler
     const handleFormChange = (e) => {
         const { name, value } = e.target;
 
@@ -149,18 +234,52 @@ const Inventory = () => {
         }));
     };
 
+    // Submit handler
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (editingPlant) {
-            await editPlant(editingPlant._id, formData);
-        } else {
-            await addPlant(formData);
+        if (!formData.category) {
+            alert("Please select a category.");
+            return;
         }
 
-        getPlants(filters);
+        if (!formData.name.trim()) {
+            alert("Plant name is required.");
+            return;
+        }
+
+        if (
+            Number(formData.price) < 0 ||
+            Number(formData.stock) < 0
+        ) {
+            alert("Price and stock cannot be negative.");
+            return;
+        }
+
+        const data = new FormData();
+
+        data.append("name", formData.name.trim());
+        data.append("category", formData.category);
+        data.append("price", formData.price);
+        data.append("stock", formData.stock);
+        data.append("status", formData.status);
+
+        if (image) {
+            data.append("image", image);
+        }
+
+        try {
+            if (editingPlant) {
+                await editPlant(editingPlant._id, data);
+            } else {
+                await addPlant(data);
+            }
+        } catch (err) {
+            console.error("Plant save error:", err);
+        }
     };
 
+    // Delete handler
     const handleDelete = async (id) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this plant?"
@@ -168,19 +287,37 @@ const Inventory = () => {
 
         if (!confirmed) return;
 
-        await removePlant(id);
-        getPlants(filters);
+        try {
+            await removePlant(id);
+            await getPlants(filters);
+        } catch (err) {
+            console.error("Plant delete error:", err);
+        }
     };
 
+    // Close modal
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setEditingPlant(null);
+        resetForm();
+        clearError();
+    };
+
+    // Pagination
     const totalPages = pagination?.pages || 1;
+
+    const columnCount =
+        8 + (canUpdate || canDelete ? 1 : 0);
 
     return (
         <Container fluid className="dashboard-page">
 
+            {/* Page Header */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
                 <div>
                     <h2>Inventory</h2>
+
                     <p className="text-muted mb-0">
                         Manage GreenLeaf plant inventory.
                     </p>
@@ -198,6 +335,7 @@ const Inventory = () => {
 
             </div>
 
+            {/* Error Message */}
             {error && (
                 <Alert
                     variant="danger"
@@ -208,12 +346,23 @@ const Inventory = () => {
                 </Alert>
             )}
 
+            {/* Success Message */}
+            {success && (
+                <Alert variant="success">
+                    {typeof success === "string"
+                        ? success
+                        : "Operation completed successfully."}
+                </Alert>
+            )}
+
+            {/* Filters */}
             <Card className="border-0 shadow-sm mb-4">
 
                 <Card.Body>
 
                     <Row className="g-3">
 
+                        {/* Search */}
                         <Col xs={12} md={5}>
                             <InputGroup>
                                 <InputGroup.Text>
@@ -229,6 +378,7 @@ const Inventory = () => {
                             </InputGroup>
                         </Col>
 
+                        {/* Category */}
                         <Col xs={12} md={3}>
                             <Form.Select
                                 name="category"
@@ -239,7 +389,7 @@ const Inventory = () => {
                                     All Categories
                                 </option>
 
-                                {categories?.map((category) => (
+                                {categoryList.map((category) => (
                                     <option
                                         key={category._id}
                                         value={category._id}
@@ -250,6 +400,7 @@ const Inventory = () => {
                             </Form.Select>
                         </Col>
 
+                        {/* Status */}
                         <Col xs={12} md={2}>
                             <Form.Select
                                 name="status"
@@ -270,6 +421,7 @@ const Inventory = () => {
                             </Form.Select>
                         </Col>
 
+                        {/* Limit */}
                         <Col xs={12} md={2}>
                             <Form.Select
                                 value={filters.limit}
@@ -281,15 +433,15 @@ const Inventory = () => {
                                     }))
                                 }
                             >
-                                <option value="10">
+                                <option value={10}>
                                     10 / page
                                 </option>
 
-                                <option value="20">
+                                <option value={20}>
                                     20 / page
                                 </option>
 
-                                <option value="50">
+                                <option value={50}>
                                     50 / page
                                 </option>
                             </Form.Select>
@@ -300,6 +452,7 @@ const Inventory = () => {
                 </Card.Body>
             </Card>
 
+            {/* Inventory Table */}
             <Card className="border-0 shadow-sm">
 
                 <Card.Body className="p-0">
@@ -311,6 +464,7 @@ const Inventory = () => {
                             responsive
                             className="mb-0 align-middle"
                         >
+
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -319,7 +473,9 @@ const Inventory = () => {
                                     <th>SKU</th>
                                     <th>Price</th>
                                     <th>Quantity</th>
+                                    <th>Image</th>
                                     <th>Status</th>
+
                                     {(canUpdate || canDelete) && (
                                         <th>Actions</th>
                                     )}
@@ -329,23 +485,27 @@ const Inventory = () => {
                             <tbody>
 
                                 {loading ? (
+
                                     <tr>
                                         <td
-                                            colSpan="8"
+                                            colSpan={columnCount}
                                             className="text-center py-5"
                                         >
-                                            <Spinner />
+                                            <Spinner animation="border" />
                                         </td>
                                     </tr>
-                                ) : plants?.length ? (
+
+                                ) : Array.isArray(plants) &&
+                                    plants.length > 0 ? (
+
                                     plants.map((plant, index) => (
+
                                         <tr key={plant._id}>
 
                                             <td>
                                                 {((pagination?.page || 1) - 1) *
                                                     (pagination?.limit || 10) +
-                                                    index +
-                                                    1}
+                                                    index + 1}
                                             </td>
 
                                             <td>
@@ -355,9 +515,9 @@ const Inventory = () => {
                                             </td>
 
                                             <td>
-                                                {plant.category?.name ||
-                                                    plant.category ||
-                                                    "-"}
+                                                {typeof plant.category === "object"
+                                                    ? plant.category?.name || "-"
+                                                    : plant.category || "-"}
                                             </td>
 
                                             <td>
@@ -372,14 +532,30 @@ const Inventory = () => {
                                             </td>
 
                                             <td>
-                                                {plant.quantity ?? 0}
+                                                {plant.stock ?? 0}
+                                            </td>
+
+                                            <td>
+                                                {plant.image?.url ? (
+                                                    <img
+                                                        src={plant.image.url}
+                                                        alt={plant.name}
+                                                        style={{
+                                                            width: "55px",
+                                                            height: "55px",
+                                                            objectFit: "cover",
+                                                            borderRadius: "6px",
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    "No Image"
+                                                )}
                                             </td>
 
                                             <td>
                                                 <Badge
                                                     bg={
-                                                        plant.status ===
-                                                            "active"
+                                                        plant.status === "Available"
                                                             ? "success"
                                                             : "secondary"
                                                     }
@@ -390,15 +566,14 @@ const Inventory = () => {
 
                                             {(canUpdate || canDelete) && (
                                                 <td>
+
                                                     {canUpdate && (
                                                         <Button
                                                             size="sm"
                                                             variant="outline-primary"
                                                             className="me-2"
                                                             onClick={() =>
-                                                                handleOpenEdit(
-                                                                    plant
-                                                                )
+                                                                handleOpenEdit(plant)
                                                             }
                                                         >
                                                             <FaEdit />
@@ -410,31 +585,35 @@ const Inventory = () => {
                                                             size="sm"
                                                             variant="outline-danger"
                                                             onClick={() =>
-                                                                handleDelete(
-                                                                    plant._id
-                                                                )
+                                                                handleDelete(plant._id)
                                                             }
                                                         >
                                                             <FaTrash />
                                                         </Button>
                                                     )}
+
                                                 </td>
                                             )}
 
                                         </tr>
+
                                     ))
+
                                 ) : (
+
                                     <tr>
                                         <td
-                                            colSpan="8"
+                                            colSpan={columnCount}
                                             className="text-center py-5"
                                         >
                                             No plants found.
                                         </td>
                                     </tr>
+
                                 )}
 
                             </tbody>
+
                         </Table>
 
                     </div>
@@ -442,6 +621,7 @@ const Inventory = () => {
                 </Card.Body>
             </Card>
 
+            {/* Pagination */}
             {totalPages > 1 && (
                 <div className="d-flex justify-content-center mt-4">
 
@@ -461,6 +641,7 @@ const Inventory = () => {
                             { length: totalPages },
                             (_, index) => index + 1
                         ).map((page) => (
+
                             <Pagination.Item
                                 key={page}
                                 active={page === filters.page}
@@ -473,6 +654,7 @@ const Inventory = () => {
                             >
                                 {page}
                             </Pagination.Item>
+
                         ))}
 
                         <Pagination.Next
@@ -490,16 +672,16 @@ const Inventory = () => {
                 </div>
             )}
 
+            {/* Add / Edit Modal */}
             <Modal
                 show={showModal}
-                onHide={() => setShowModal(false)}
+                onHide={handleCloseModal}
                 centered
             >
+
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {editingPlant
-                            ? "Edit Plant"
-                            : "Add Plant"}
+                        {editingPlant ? "Edit Plant" : "Add Plant"}
                     </Modal.Title>
                 </Modal.Header>
 
@@ -507,6 +689,7 @@ const Inventory = () => {
 
                     <Modal.Body>
 
+                        {/* Plant Name */}
                         <Form.Group className="mb-3">
                             <Form.Label>
                                 Plant Name
@@ -516,10 +699,12 @@ const Inventory = () => {
                                 name="name"
                                 value={formData.name}
                                 onChange={handleFormChange}
+                                placeholder="Enter plant name"
                                 required
                             />
                         </Form.Group>
 
+                        {/* Category */}
                         <Form.Group className="mb-3">
                             <Form.Label>
                                 Category
@@ -529,12 +714,13 @@ const Inventory = () => {
                                 name="category"
                                 value={formData.category}
                                 onChange={handleFormChange}
+                                required
                             >
                                 <option value="">
                                     Select category
                                 </option>
 
-                                {categories?.map((category) => (
+                                {categoryList.map((category) => (
                                     <option
                                         key={category._id}
                                         value={category._id}
@@ -547,6 +733,7 @@ const Inventory = () => {
 
                         <Row>
 
+                            {/* Price */}
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>
@@ -559,11 +746,13 @@ const Inventory = () => {
                                         value={formData.price}
                                         onChange={handleFormChange}
                                         min="0"
+                                        step="0.01"
                                         required
                                     />
                                 </Form.Group>
                             </Col>
 
+                            {/* Quantity */}
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>
@@ -572,10 +761,11 @@ const Inventory = () => {
 
                                     <Form.Control
                                         type="number"
-                                        name="quantity"
-                                        value={formData.quantity}
+                                        name="stock"
+                                        value={formData.stock}
                                         onChange={handleFormChange}
                                         min="0"
+                                        step="1"
                                         required
                                     />
                                 </Form.Group>
@@ -583,6 +773,39 @@ const Inventory = () => {
 
                         </Row>
 
+                        {/* Image */}
+                        <Form.Group className="mb-3">
+                            <Form.Label>
+                                Plant Image
+                            </Form.Label>
+
+                            <Form.Control
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={handleImageChange}
+                            />
+
+                            <Form.Text className="text-muted">
+                                Maximum image size: 5MB.
+                            </Form.Text>
+
+                            {imagePreview && (
+                                <div className="mt-3">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Plant Preview"
+                                        style={{
+                                            width: "150px",
+                                            height: "120px",
+                                            objectFit: "cover",
+                                            borderRadius: "8px",
+                                        }}
+                                    />
+                                </div>
+                            )}
+                        </Form.Group>
+
+                        {/* Status */}
                         <Form.Group>
                             <Form.Label>
                                 Status
@@ -594,11 +817,14 @@ const Inventory = () => {
                                 onChange={handleFormChange}
                             >
                                 <option value="active">
-                                    Active
+                                    Available
                                 </option>
 
                                 <option value="inactive">
-                                    Inactive
+                                    Out of stock
+                                </option>
+                                <option value="inactive">
+                                    Reservedx
                                 </option>
                             </Form.Select>
                         </Form.Group>
@@ -609,7 +835,8 @@ const Inventory = () => {
 
                         <Button
                             variant="secondary"
-                            onClick={() => setShowModal(false)}
+                            onClick={handleCloseModal}
+                            disabled={loading}
                         >
                             Cancel
                         </Button>
@@ -619,16 +846,25 @@ const Inventory = () => {
                             variant="success"
                             disabled={loading}
                         >
-                            {loading
-                                ? "Saving..."
-                                : editingPlant
+                            {loading ? (
+                                <>
+                                    <Spinner
+                                        size="sm"
+                                        className="me-2"
+                                    />
+                                    Saving...
+                                </>
+                            ) : (
+                                editingPlant
                                     ? "Update Plant"
-                                    : "Add Plant"}
+                                    : "Add Plant"
+                            )}
                         </Button>
 
                     </Modal.Footer>
 
                 </Form>
+
             </Modal>
 
         </Container>

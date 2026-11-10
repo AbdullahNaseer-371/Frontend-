@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const API_URL =
@@ -13,10 +12,10 @@ const api = axios.create({
     },
 });
 
-// Attach access token to every request
+// Attach access token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
 
         if (token) {
             config.headers = config.headers || {};
@@ -33,11 +32,11 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-    failedQueue.forEach((promise) => {
+    failedQueue.forEach(({ resolve, reject }) => {
         if (error) {
-            promise.reject(error);
+            reject(error);
         } else {
-            promise.resolve(token);
+            resolve(token);
         }
     });
 
@@ -54,7 +53,6 @@ api.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        // Do not refresh authentication requests
         const isAuthRequest =
             originalRequest.url?.includes("/auth/login") ||
             originalRequest.url?.includes("/auth/register") ||
@@ -70,7 +68,7 @@ api.interceptors.response.use(
 
         originalRequest._retry = true;
 
-        // Wait if another request is already refreshing
+        // Queue requests while refreshing
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
                 failedQueue.push({ resolve, reject });
@@ -95,7 +93,6 @@ api.interceptors.response.use(
                 throw new Error("Refresh token not found");
             }
 
-            // Refresh access token
             const response = await axios.post(
                 `${API_URL}/auth/refresh`,
                 { refreshToken },
@@ -107,20 +104,21 @@ api.interceptors.response.use(
                 }
             );
 
-            const newAccessToken =
-                response.data?.data?.accessToken;
+            const data =
+                response.data?.data || response.data;
 
-            const newRefreshToken =
-                response.data?.data?.refreshToken;
+            const newAccessToken = data?.accessToken;
+            const newRefreshToken = data?.refreshToken;
 
             if (!newAccessToken) {
-                throw new Error(
-                    "New access token not received"
-                );
+                throw new Error("New access token not received");
             }
 
-            // Save rotated tokens
-            localStorage.setItem("token", newAccessToken);
+            // Use ONE consistent access token key
+            localStorage.setItem(
+                "accessToken",
+                newAccessToken
+            );
 
             if (newRefreshToken) {
                 localStorage.setItem(
@@ -129,7 +127,6 @@ api.interceptors.response.use(
                 );
             }
 
-            // Resolve queued requests
             processQueue(null, newAccessToken);
 
             originalRequest.headers =
@@ -141,14 +138,19 @@ api.interceptors.response.use(
             return api(originalRequest);
 
         } catch (refreshError) {
+
             processQueue(refreshError, null);
 
-            // Clear invalid authentication data
+            // Remove all authentication data
+            localStorage.removeItem("accessToken");
             localStorage.removeItem("token");
             localStorage.removeItem("refreshToken");
             localStorage.removeItem("user");
 
-            window.location.href = "/login";
+            // Force a fresh application load
+            if (window.location.pathname !== "/login") {
+                window.location.replace("/login");
+            }
 
             return Promise.reject(refreshError);
 

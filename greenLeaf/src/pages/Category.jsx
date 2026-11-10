@@ -42,7 +42,8 @@ const Categories = () => {
 
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
-
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -75,6 +76,9 @@ const Categories = () => {
             description: "",
         });
 
+        setImage(null);
+        setImagePreview(null);
+
         setShowModal(true);
     };
 
@@ -86,7 +90,28 @@ const Categories = () => {
             description: category.description || "",
         });
 
+        setImage(null);
+        setImagePreview(category.image?.url || null);
+
         setShowModal(true);
+    };
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please select a valid image.");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image size must be less than 5MB.");
+            return;
+        }
+
+        setImage(file);
+        setImagePreview(URL.createObjectURL(file));
     };
 
     const handleChange = (e) => {
@@ -101,13 +126,19 @@ const Categories = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const data = new FormData();
+
+        data.append("name", formData.name);
+        data.append("description", formData.description);
+
+        if (image) {
+            data.append("image", image);
+        }
+
         if (editingCategory) {
-            await editCategory(
-                editingCategory._id,
-                formData
-            );
+            await editCategory(editingCategory._id, data);
         } else {
-            await addCategory(formData);
+            await addCategory(data);
         }
     };
 
@@ -170,6 +201,7 @@ const Categories = () => {
                                     <th>#</th>
                                     <th>Name</th>
                                     <th>Description</th>
+                                    <th>Image</th>
                                     {(canUpdate || canDelete) && (
                                         <th>Actions</th>
                                     )}
@@ -205,6 +237,22 @@ const Categories = () => {
                                                 <td>
                                                     {category.description ||
                                                         "-"}
+                                                </td>
+                                                <td>
+                                                    {category.image?.url ? (
+                                                        <img
+                                                            src={category.image.url}
+                                                            alt={category.name}
+                                                            style={{
+                                                                width: "55px",
+                                                                height: "55px",
+                                                                objectFit: "cover",
+                                                                borderRadius: "6px",
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        "No Image"
+                                                    )}
                                                 </td>
 
                                                 {(canUpdate || canDelete) && (
@@ -307,6 +355,30 @@ const Categories = () => {
                                 value={formData.description}
                                 onChange={handleChange}
                             />
+                        </Form.Group>
+                        <Form.Group className="mt-3">
+                            <Form.Label>Category Image</Form.Label>
+
+                            <Form.Control
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={handleImageChange}
+                            />
+
+                            {imagePreview && (
+                                <div className="mt-3">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Category Preview"
+                                        style={{
+                                            width: "150px",
+                                            height: "120px",
+                                            objectFit: "cover",
+                                            borderRadius: "8px",
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </Form.Group>
 
                     </Modal.Body>
