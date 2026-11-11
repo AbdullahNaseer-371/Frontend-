@@ -1,3 +1,4 @@
+
 import {
     Alert,
     Button,
@@ -12,13 +13,16 @@ import {
     Spinner,
     Table,
 } from "react-bootstrap";
-import { FaEdit, FaPlus, FaSearch, FaTrash } from "react-icons/fa";
-import '../styles/sales.css';
-/**
- * SalesContainer
- * Presentational React Bootstrap container for the GreenLeaf Sales page.
- * Pass the existing state values and handlers from your Sales page component.
- */
+
+import {
+    FaEdit,
+    FaPlus,
+    FaSearch,
+    FaTrash,
+} from "react-icons/fa";
+
+import "../styles/sales.css";
+
 const SalesContainer = ({
     canCreate,
     canUpdate,
@@ -45,11 +49,14 @@ const SalesContainer = ({
     formData,
     handleChange,
     plants = [],
+    unitPrice = 0,
+    computedTotalPrice = 0,
 }) => {
     const columnCount = canUpdate || canDelete ? 7 : 6;
 
     return (
         <Container fluid className="dashboard-page sales-page">
+
             {/* Page heading */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div>
@@ -79,7 +86,9 @@ const SalesContainer = ({
                 <Col xs={12} md={6} xl={3}>
                     <Card className="sales-summary-card h-100">
                         <Card.Body>
-                            <small className="sales-card-label">Total Sales</small>
+                            <small className="sales-card-label">
+                                Total Sales
+                            </small>
                             <h3 className="mt-2 mb-0">
                                 {pagination?.total ?? sales.length}
                             </h3>
@@ -90,7 +99,9 @@ const SalesContainer = ({
                 <Col xs={12} md={6} xl={3}>
                     <Card className="sales-summary-card h-100">
                         <Card.Body>
-                            <small className="sales-card-label">Revenue</small>
+                            <small className="sales-card-label">
+                                Revenue
+                            </small>
                             <h3 className="mt-2 mb-0">
                                 Rs. {Number(reportRevenue || 0).toLocaleString()}
                             </h3>
@@ -108,6 +119,7 @@ const SalesContainer = ({
                                 <InputGroup.Text>
                                     <FaSearch />
                                 </InputGroup.Text>
+
                                 <Form.Control
                                     name="search"
                                     value={filters.search}
@@ -180,7 +192,9 @@ const SalesContainer = ({
                                 <tr>
                                     <td colSpan={columnCount} className="text-center py-5">
                                         <Spinner animation="border" role="status">
-                                            <span className="visually-hidden">Loading sales...</span>
+                                            <span className="visually-hidden">
+                                                Loading sales...
+                                            </span>
                                         </Spinner>
                                     </td>
                                 </tr>
@@ -190,15 +204,19 @@ const SalesContainer = ({
                                         <td>
                                             {((pagination?.page || filters.page || 1) - 1) *
                                                 (pagination?.limit || filters.limit || 10) +
-                                                index +
-                                                1}
+                                                index + 1}
                                         </td>
+
                                         <td>{getPlantName(sale.plantId)}</td>
+
                                         <td>{sale.quantity}</td>
+
                                         <td>
                                             Rs. {Number(sale.totalPrice || 0).toLocaleString()}
                                         </td>
+
                                         <td>{getSoldByName(sale.soldBy)}</td>
+
                                         <td>
                                             {sale.saleDate
                                                 ? new Date(sale.saleDate).toLocaleDateString()
@@ -219,6 +237,7 @@ const SalesContainer = ({
                                                         <FaEdit />
                                                     </Button>
                                                 )}
+
                                                 {canDelete && (
                                                     <Button
                                                         size="sm"
@@ -236,7 +255,10 @@ const SalesContainer = ({
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={columnCount} className="text-center py-5 sales-empty-state">
+                                    <td
+                                        colSpan={columnCount}
+                                        className="text-center py-5 sales-empty-state"
+                                    >
                                         No sales found.
                                     </td>
                                 </tr>
@@ -260,19 +282,23 @@ const SalesContainer = ({
                             }
                         />
 
-                        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-                            (page) => (
-                                <Pagination.Item
-                                    key={page}
-                                    active={filters.page === page}
-                                    onClick={() =>
-                                        setFilters((previous) => ({ ...previous, page }))
-                                    }
-                                >
-                                    {page}
-                                </Pagination.Item>
-                            )
-                        )}
+                        {Array.from(
+                            { length: totalPages },
+                            (_, index) => index + 1
+                        ).map((page) => (
+                            <Pagination.Item
+                                key={page}
+                                active={filters.page === page}
+                                onClick={() =>
+                                    setFilters((previous) => ({
+                                        ...previous,
+                                        page,
+                                    }))
+                                }
+                            >
+                                {page}
+                            </Pagination.Item>
+                        ))}
 
                         <Pagination.Next
                             disabled={filters.page >= totalPages}
@@ -287,7 +313,7 @@ const SalesContainer = ({
                 </div>
             )}
 
-            {/* Add / edit sale modal */}
+            {/* Add / Edit Sale Modal */}
             <Modal
                 show={showModal}
                 onHide={() => setShowModal(false)}
@@ -295,56 +321,85 @@ const SalesContainer = ({
                 className="sales-modal"
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>{editingSale ? "Edit Sale" : "Add Sale"}</Modal.Title>
+                    <Modal.Title>
+                        {editingSale ? "Edit Sale" : "Add Sale"}
+                    </Modal.Title>
                 </Modal.Header>
 
                 <Form onSubmit={handleSubmit}>
                     <Modal.Body>
+
+                        {/* Plant selection */}
                         <Form.Group className="mb-3">
-                            <Form.Label>Plant</Form.Label>
+                            <Form.Label>Select Plant</Form.Label>
+
                             <Form.Select
                                 name="plantId"
                                 value={formData.plantId}
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="">Select plant</option>
+                                <option value="">Select a plant</option>
+
                                 {plants.map((plant) => (
                                     <option key={plant._id} value={plant._id}>
-                                        {plant.name}
+                                        {plant.name} - Rs. {plant.price}
                                     </option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
+                        {/* Quantity */}
                         <Form.Group className="mb-3">
                             <Form.Label>Quantity</Form.Label>
+
                             <Form.Control
                                 type="number"
                                 name="quantity"
+                                min="1"
                                 value={formData.quantity}
                                 onChange={handleChange}
-                                min="1"
-                                step="1"
+                                placeholder="Enter quantity"
                                 required
                             />
                         </Form.Group>
 
+                        {/* Unit Price */}
                         <Form.Group className="mb-3">
-                            <Form.Label>Total Price</Form.Label>
+                            <Form.Label>Unit Price (Rs.)</Form.Label>
+
                             <Form.Control
                                 type="number"
-                                name="totalPrice"
-                                value={formData.totalPrice}
-                                onChange={handleChange}
-                                min="0"
-                                step="0.01"
-                                required
+                                value={unitPrice}
+                                readOnly
+                                className="bg-light"
                             />
+
+                            <Form.Text className="text-muted">
+                                Automatically fetched from plant records.
+                            </Form.Text>
                         </Form.Group>
 
+                        {/* Automatically calculated Total Price */}
+                        <Form.Group className="mb-3">
+                            <Form.Label>Total Price (Rs.)</Form.Label>
+
+                            <Form.Control
+                                type="number"
+                                value={computedTotalPrice}
+                                readOnly
+                                className="bg-light fw-bold"
+                            />
+
+                            <Form.Text className="text-success">
+                                Unit Price × Quantity
+                            </Form.Text>
+                        </Form.Group>
+
+                        {/* Sale Date */}
                         <Form.Group>
                             <Form.Label>Sale Date</Form.Label>
+
                             <Form.Control
                                 type="date"
                                 name="saleDate"
@@ -352,6 +407,7 @@ const SalesContainer = ({
                                 onChange={handleChange}
                             />
                         </Form.Group>
+
                     </Modal.Body>
 
                     <Modal.Footer>
@@ -362,7 +418,17 @@ const SalesContainer = ({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" variant="success" disabled={loading}>
+
+                        <Button
+                            type="submit"
+                            variant="success"
+                            disabled={
+                                loading ||
+                                !formData.plantId ||
+                                Number(formData.quantity) <= 0 ||
+                                computedTotalPrice <= 0
+                            }
+                        >
                             {loading
                                 ? "Saving..."
                                 : editingSale

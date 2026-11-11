@@ -1,3 +1,4 @@
+
 import { createSlice } from "@reduxjs/toolkit";
 
 import {
@@ -10,16 +11,45 @@ import {
     deleteUser,
 } from "../thunks/auth.thunks";
 
-const storedUser = localStorage.getItem("user");
-const storedToken = localStorage.getItem("accessToken");
+// Read session data safely
+const getStoredUser = () => {
+    try {
+        const user = sessionStorage.getItem("user");
+        return user ? JSON.parse(user) : null;
+    } catch {
+        return null;
+    }
+};
+
+const storedUser = getStoredUser();
+const storedToken = sessionStorage.getItem("accessToken");
 
 const initialState = {
-    user: storedUser ? JSON.parse(storedUser) : null,
+    user: storedUser,
     users: [],
     isAuthenticated: !!storedToken && !!storedUser,
     loading: false,
     error: null,
     success: false,
+};
+
+// Remove all authentication information
+const clearSessionStorage = () => {
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+
+    // Remove old authentication keys from previous implementation
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+};
+
+// Normalize API response
+const getResponseData = (payload) => {
+    return payload?.data?.data ?? payload?.data ?? payload;
 };
 
 const authSlice = createSlice({
@@ -36,16 +66,22 @@ const authSlice = createSlice({
             state.success = false;
         },
 
+        // setUser: (state, action) => {
+        //     state.user = action.payload;
+        //     state.isAuthenticated = !!action.payload;
+
+        //     if (action.payload) {
+        //         sessionStorage.setItem(
+        //             "user",
+        //             JSON.stringify(action.payload)
+        //         );
+        //     } else {
+        //         sessionStorage.removeItem("user");
+        //     }
+        // },
         setUser: (state, action) => {
             state.user = action.payload;
             state.isAuthenticated = !!action.payload;
-
-            if (action.payload) {
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(action.payload)
-                );
-            }
         },
 
         clearAuth: (state) => {
@@ -54,11 +90,7 @@ const authSlice = createSlice({
             state.users = [];
             state.loading = false;
             state.error = null;
-
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("token");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("user");
+            state.success = false;
         },
     },
 
@@ -90,48 +122,24 @@ const authSlice = createSlice({
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.isAuthenticated = true;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
-
+                const data = getResponseData(action.payload);
                 const user = data?.user;
-
-                const accessToken =
-                    data?.accessToken;
-
-                const refreshToken =
-                    data?.refreshToken;
-
-                if (accessToken) {
-                    localStorage.setItem(
-                        "accessToken",
-                        accessToken
-                    );
-                }
-
-                if (refreshToken) {
-                    localStorage.setItem(
-                        "refreshToken",
-                        refreshToken
-                    );
-                }
+                const accessToken = data?.accessToken;
 
                 if (user) {
                     state.user = user;
-
-                    localStorage.setItem(
-                        "user",
-                        JSON.stringify(user)
-                    );
+                    state.isAuthenticated = !!accessToken;
                 }
             })
 
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                state.user = null;
                 state.isAuthenticated = false;
+
+                clearSessionStorage();
             })
 
             // CURRENT USER
@@ -143,17 +151,13 @@ const authSlice = createSlice({
             .addCase(getCurrentUser.fulfilled, (state, action) => {
                 state.loading = false;
 
-                state.users = Array.isArray(action.payload)
-                    ? action.payload
-                    : [];
+                const data = getResponseData(action.payload);
+                const user = data?.user ?? data;
 
-                state.user = user;
-                state.isAuthenticated = true;
-
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(user)
-                );
+                if (user && typeof user === "object" && !Array.isArray(user)) {
+                    state.user = user;
+                    state.isAuthenticated = true;
+                }
             })
 
             .addCase(getCurrentUser.rejected, (state, action) => {
@@ -164,31 +168,29 @@ const authSlice = createSlice({
             // LOGOUT
             .addCase(logoutUser.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
 
-            .addCase(logoutUser.fulfilled, (state) => {
-                state.loading = false;
+            // .addCase(logoutUser.fulfilled, (state) => {
+            //     state.loading = false;
+            //     state.user = null;
+            //     state.isAuthenticated = false;
+            //     state.users = [];
+            //     state.success = false;
 
-                state.user = null;
-                state.isAuthenticated = false;
+            //     clearSessionStorage();
+            // })
 
-                localStorage.removeItem("accessToken");
-                localStorage.removeItem("refreshToken");
-                localStorage.removeItem("user");
-            })
+            // .addCase(logoutUser.rejected, (state) => {
+            //     state.loading = false;
+            //     state.user = null;
+            //     state.isAuthenticated = false;
+            //     state.users = [];
+            //     state.error = null;
 
-            .addCase(logoutUser.rejected, (state) => {
-                state.loading = false;
-
-                // Even if backend logout fails,
-                // remove local authentication.
-                state.user = null;
-                state.isAuthenticated = false;
-
-                localStorage.removeItem("accessToken");
-                localStorage.removeItem("refreshToken");
-                localStorage.removeItem("user");
-            })
+            //     // Clear local authentication even if API fails
+            //     clearSessionStorage();
+            // })
 
             // USERS
             .addCase(getUsers.pending, (state) => {
@@ -199,14 +201,13 @@ const authSlice = createSlice({
             .addCase(getUsers.fulfilled, (state, action) => {
                 state.loading = false;
 
-                const data =
-                    action.payload?.data ||
-                    action.payload;
+                const data = getResponseData(action.payload);
 
-                state.users =
-                    data?.users ||
-                    data ||
-                    [];
+                state.users = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data?.users)
+                        ? data.users
+                        : [];
             })
 
             .addCase(getUsers.rejected, (state, action) => {
@@ -249,7 +250,21 @@ const authSlice = createSlice({
             .addCase(deleteUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            });
+            })
+            .addCase(logoutUser.fulfilled, (state) => {
+                state.loading = false;
+                state.user = null;
+                state.isAuthenticated = false;
+                state.users = [];
+                state.error = null;
+            })
+            .addCase(logoutUser.rejected, (state) => {
+                state.loading = false;
+                state.user = null;
+                state.isAuthenticated = false;
+                state.users = [];
+                state.error = null;
+            })
     },
 });
 

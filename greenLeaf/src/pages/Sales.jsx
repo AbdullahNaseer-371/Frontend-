@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import useSales from "../hooks/useSale";
@@ -49,7 +50,7 @@ const Sales = () => {
     const [editingSale, setEditingSale] = useState(null);
     const [formData, setFormData] = useState(EMPTY_FORM);
 
-    // Fetch sales whenever a filter or pagination value changes.
+    // Fetch sales whenever filters change.
     useEffect(() => {
         getSales(filters);
     }, [
@@ -60,7 +61,7 @@ const Sales = () => {
         filters.limit,
     ]);
 
-    // The report is date-based; refresh it when the date range changes.
+    // Fetch sales report.
     useEffect(() => {
         getSalesReport({
             startDate: filters.startDate,
@@ -68,20 +69,46 @@ const Sales = () => {
         });
     }, [filters.startDate, filters.endDate]);
 
-    // Plants are needed for the sale form. Fetch them once on mount.
+    // Fetch plants.
     useEffect(() => {
         getPlants();
     }, []);
 
-    // Close and reset the form after a successful create/update.
+    // Close modal after successful create/update.
     useEffect(() => {
         if (!success) return;
 
         setShowModal(false);
         setEditingSale(null);
         setFormData(EMPTY_FORM);
+
         clearSuccess();
     }, [success]);
+
+    // Find selected plant using its ID.
+    const selectedPlant = Array.isArray(plants)
+        ? plants.find(
+            (plant) =>
+                String(plant._id) === String(formData.plantId)
+        )
+        : null;
+
+    // Get unit price from the Plant model.
+    const unitPrice = Number(selectedPlant?.price || 0);
+
+    // Automatically calculate total price.
+    const computedTotalPrice =
+        Number(formData.quantity) > 0
+            ? unitPrice * Number(formData.quantity)
+            : 0;
+
+    // Keep totalPrice synchronized with selected plant and quantity.
+    useEffect(() => {
+        setFormData((previous) => ({
+            ...previous,
+            totalPrice: computedTotalPrice,
+        }));
+    }, [computedTotalPrice]);
 
     const getPlantName = (plant) => {
         if (!plant) return "-";
@@ -121,12 +148,14 @@ const Sales = () => {
         }));
     };
 
+    // Open add modal.
     const handleOpenAdd = () => {
         setEditingSale(null);
         setFormData(EMPTY_FORM);
         setShowModal(true);
     };
 
+    // Open edit modal.
     const handleOpenEdit = (sale) => {
         setEditingSale(sale);
 
@@ -138,13 +167,16 @@ const Sales = () => {
             quantity: sale.quantity ?? "",
             totalPrice: sale.totalPrice ?? "",
             saleDate: sale.saleDate
-                ? new Date(sale.saleDate).toISOString().slice(0, 10)
+                ? new Date(sale.saleDate)
+                    .toISOString()
+                    .slice(0, 10)
                 : "",
         });
 
         setShowModal(true);
     };
 
+    // Handle form changes.
     const handleChange = (event) => {
         const { name, value } = event.target;
 
@@ -154,17 +186,23 @@ const Sales = () => {
         }));
     };
 
+    // Submit sale.
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if (!formData.plantId || !formData.quantity || formData.totalPrice === "") {
+        if (
+            !formData.plantId ||
+            !selectedPlant ||
+            Number(formData.quantity) <= 0
+        ) {
             return;
         }
 
         const payload = {
-            ...formData,
+            plantId: formData.plantId,
             quantity: Number(formData.quantity),
-            totalPrice: Number(formData.totalPrice),
+            totalPrice: computedTotalPrice,
+            saleDate: formData.saleDate,
         };
 
         if (editingSale) {
@@ -173,21 +211,26 @@ const Sales = () => {
             await addSale(payload);
         }
 
-        // Refresh the current page after the mutation.
         await getSales(filters);
+
         await getSalesReport({
             startDate: filters.startDate,
             endDate: filters.endDate,
         });
     };
 
+    // Delete sale.
     const handleDelete = async (id) => {
-        const confirmed = window.confirm("Are you sure you want to delete this sale?");
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this sale?"
+        );
+
         if (!confirmed) return;
 
         await removeSale(id);
 
         await getSales(filters);
+
         await getSalesReport({
             startDate: filters.startDate,
             endDate: filters.endDate,
@@ -228,6 +271,8 @@ const Sales = () => {
             formData={formData}
             handleChange={handleChange}
             plants={plants}
+            unitPrice={unitPrice}
+            computedTotalPrice={computedTotalPrice}
         />
     );
 };

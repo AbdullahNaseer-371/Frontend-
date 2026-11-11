@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const API_URL =
@@ -15,7 +16,7 @@ const api = axios.create({
 // Attach access token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("accessToken");
+        const token = sessionStorage.getItem("accessToken");
 
         if (token) {
             config.headers = config.headers || {};
@@ -56,7 +57,8 @@ api.interceptors.response.use(
         const isAuthRequest =
             originalRequest.url?.includes("/auth/login") ||
             originalRequest.url?.includes("/auth/register") ||
-            originalRequest.url?.includes("/auth/refresh");
+            originalRequest.url?.includes("/auth/refresh") ||
+            originalRequest.url?.includes("/auth/logout");
 
         if (
             error.response?.status !== 401 ||
@@ -87,7 +89,7 @@ api.interceptors.response.use(
 
         try {
             const refreshToken =
-                localStorage.getItem("refreshToken");
+                sessionStorage.getItem("refreshToken");
 
             if (!refreshToken) {
                 throw new Error("Refresh token not found");
@@ -114,14 +116,14 @@ api.interceptors.response.use(
                 throw new Error("New access token not received");
             }
 
-            // Use ONE consistent access token key
-            localStorage.setItem(
+            // Store new tokens in sessionStorage
+            sessionStorage.setItem(
                 "accessToken",
                 newAccessToken
             );
 
             if (newRefreshToken) {
-                localStorage.setItem(
+                sessionStorage.setItem(
                     "refreshToken",
                     newRefreshToken
                 );
@@ -141,13 +143,12 @@ api.interceptors.response.use(
 
             processQueue(refreshError, null);
 
-            // Remove all authentication data
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("token");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("user");
+            // Clear authentication data
+            sessionStorage.removeItem("accessToken");
+            sessionStorage.removeItem("refreshToken");
+            sessionStorage.removeItem("user");
 
-            // Force a fresh application load
+            // Redirect to login
             if (window.location.pathname !== "/login") {
                 window.location.replace("/login");
             }

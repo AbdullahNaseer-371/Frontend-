@@ -5,8 +5,9 @@ import {
     Card,
     Alert,
     Spinner,
+    Button
 } from "react-bootstrap";
-
+import { FaSignOutAlt } from "react-icons/fa";
 import "../styles/dashboard.css";
 
 const DashboardContainer = ({
@@ -22,11 +23,13 @@ const DashboardContainer = ({
     errors,
     formatCurrency,
     onCardClick,
+    onLogout
 }) => {
     return (
         <Container fluid className="dashboard-page">
 
             {/* HEADER */}
+            
             <div className="dashboard-header">
                 <div>
                     <span className="dashboard-eyebrow">
@@ -40,9 +43,20 @@ const DashboardContainer = ({
                     </p>
                 </div>
 
-                <div className="dashboard-status">
-                    <span className="status-dot"></span>
-                    Management Panel
+                <div className="dashboard-header-actions">
+                    <div className="dashboard-status">
+                        <span className="status-dot"></span>
+                        Management Panel
+                    </div>
+
+                    <Button
+                        variant="danger"
+                        className="dashboard-logout-btn"
+                        onClick={onLogout}
+                    >
+                        <FaSignOutAlt />
+                        <span>Logout</span>
+                    </Button>
                 </div>
             </div>
 

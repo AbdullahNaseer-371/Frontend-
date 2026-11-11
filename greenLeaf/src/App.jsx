@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
 import Categories from "./pages/Category";
-import Users from "./pages/User";
+// import Users from "./pages/User";
 
 // Auth components
 import ProtectedRoute from "./components/auth/ProtectedRoutes";
@@ -102,10 +102,10 @@ const App = () => {
               }
             >
 
-              <Route
+              {/* <Route
                 path="/users"
                 element={<Users />}
-              />
+              /> */}
 
             </Route>
 
