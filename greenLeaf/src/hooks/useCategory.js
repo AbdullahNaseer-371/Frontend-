@@ -1,4 +1,5 @@
 
+import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -56,37 +57,54 @@ const useCategories = () => {
         success,
     } = useSelector((state) => state.categories);
 
-    // Always return an array
     const categories = normalizeCategories(rawCategories);
 
-    const getCategories = (params = {}) => {
-        return dispatch(fetchCategories(params));
-    };
+    // Fetch categories
+    const getCategories = useCallback(
+        (params = {}) => {
+            return dispatch(fetchCategories(params));
+        },
+        [dispatch]
+    );
 
-    const addCategory = (categoryData) => {
-        return dispatch(createCategory(categoryData));
-    };
+    // Add category
+    const addCategory = useCallback(
+        (categoryData) => {
+            return dispatch(createCategory(categoryData));
+        },
+        [dispatch]
+    );
 
-    const editCategory = (id, categoryData) => {
-        return dispatch(
-            updateCategory({
-                id,
-                categoryData,
-            })
-        );
-    };
+    // Update category
+    const editCategory = useCallback(
+        (id, categoryData) => {
+            return dispatch(
+                updateCategory({
+                    id,
+                    categoryData,
+                })
+            );
+        },
+        [dispatch]
+    );
 
-    const removeCategory = (id) => {
-        return dispatch(deleteCategory(id));
-    };
+    // Delete category
+    const removeCategory = useCallback(
+        (id) => {
+            return dispatch(deleteCategory(id));
+        },
+        [dispatch]
+    );
 
-    const clearError = () => {
+    // Clear error
+    const clearError = useCallback(() => {
         dispatch(clearCategoryError());
-    };
+    }, [dispatch]);
 
-    const clearSuccess = () => {
+    // Clear success
+    const clearSuccess = useCallback(() => {
         dispatch(clearCategorySuccess());
-    };
+    }, [dispatch]);
 
     return {
         categories,
