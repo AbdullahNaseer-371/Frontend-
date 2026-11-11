@@ -1,0 +1,156 @@
+/* ==============================
+   Categories Page
+============================== */
+
+.categories-page {
+    padding-bottom: 30px;
+}
+
+.categories-heading h2 {
+    color: var(--text-dark, #1f2937);
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.categories-heading p {
+    color: var(--text-muted, #6b7280);
+    margin-bottom: 0;
+}
+
+/* Add Button */
+
+.category-add-btn,
+.category-submit-btn {
+    background: var(--green-primary, #198754);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-weight: 600;
+}
+
+.category-add-btn:hover,
+.category-submit-btn:hover {
+    background: var(--green-dark, #146c43);
+}
+
+/* Table Card */
+
+.category-table-card {
+    border: 1px solid var(--glass-border, #e5e7eb);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--glass-bg, #ffffff);
+    box-shadow: var(--glass-shadow, 0 4px 15px rgba(0, 0, 0, 0.05));
+}
+
+.categories-table {
+    vertical-align: middle;
+}
+
+.categories-table thead th {
+    background: var(--green-soft, #edf7f0);
+    color: var(--green-dark, #14532d);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 16px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--glass-border, #e5e7eb);
+}
+
+.categories-table tbody td {
+    padding: 14px 16px;
+    color: var(--text-dark, #1f2937);
+    font-size: 0.9rem;
+}
+
+.categories-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.categories-table tbody tr:hover {
+    background: var(--green-light, #f7fcf8);
+}
+
+.category-description {
+    display: inline-block;
+    max-width: 350px;
+    color: var(--text-muted, #6b7280);
+}
+
+/* Category Image */
+
+.category-table-image {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 9px;
+    border: 1px solid var(--glass-border, #e5e7eb);
+}
+
+/* Actions */
+
+.category-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.category-actions .btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+}
+
+/* Empty State */
+
+.category-empty h5 {
+    color: var(--text-dark, #1f2937);
+    font-weight: 700;
+}
+
+.category-empty p {
+    color: var(--text-muted, #6b7280);
+    margin-bottom: 0;
+}
+
+/* Modal Image Preview */
+
+.category-image-preview {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px dashed var(--glass-border, #d1d5db);
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.category-image-preview img {
+    width: 150px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .categories-heading h2 {
+        font-size: 1.4rem;
+    }
+
+    .category-add-btn {
+        width: 100%;
+    }
+
+    .categories-table thead th,
+    .categories-table tbody td {
+        padding: 12px;
+    }
+
+    .category-description {
+        max-width: 180px;
+    }
+}

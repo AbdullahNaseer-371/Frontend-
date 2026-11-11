@@ -14,6 +14,7 @@ import RoleRoute from "./components/auth/RoleRoute";
 
 // Layout
 import DashboardLayout from "./components/layouts/DashboardLayout";
+import RevenueReport from "./pages/RevenuReport";
 
 
 const App = () => {
@@ -58,7 +59,11 @@ const App = () => {
               path="/sales"
               element={<Sales />}
             />
-
+            <Route
+              path="reports/revenue"
+              element={<RevenueReport />}
+            />
+          
 
             {/* ===============================
                             ADMIN + MANAGER

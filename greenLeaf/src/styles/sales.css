@@ -1,0 +1,553 @@
+
+/* =========================================
+   SALES PAGE - GREENLEAF GLASS THEME
+========================================= */
+
+.sales-page {
+    min-height: 100vh;
+    padding: 30px;
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(85, 169, 107, 0.20),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 15%,
+            rgba(197, 147, 50, 0.13),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #EDF4EF,
+            #F7FAF7,
+            #E7F0E9
+        );
+    color: var(--text-dark);
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.sales-page-title {
+    color: var(--green-primary);
+    font-size: 29px;
+    font-weight: 800;
+    margin-bottom: 7px;
+}
+
+.sales-page > div:first-child p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.sales-page > div:first-child .btn-success {
+    background: var(--green-primary);
+    border: 1px solid var(--green-primary);
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(18, 61, 43, 0.15);
+    transition: all 0.3s ease;
+}
+
+.sales-page > div:first-child .btn-success:hover {
+    background: var(--green-leaf);
+    border-color: var(--green-leaf);
+    transform: translateY(-3px);
+    box-shadow: 0 9px 20px rgba(37, 131, 77, 0.20);
+}
+
+/* =========================================
+   SUMMARY CARDS
+========================================= */
+
+.sales-summary-card {
+    height: 100%;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sales-summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 40px rgba(18, 61, 43, 0.15);
+}
+
+.sales-summary-card .card-body {
+    padding: 24px;
+}
+
+.sales-card-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.sales-summary-card h3 {
+    color: var(--green-primary);
+    font-size: clamp(22px, 2vw, 28px);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   FILTER SECTION
+========================================= */
+
+.sales-filter-card {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--glass-shadow);
+}
+
+.sales-filter-card .card-body {
+    padding: 23px;
+}
+
+.sales-filter-card .form-control,
+.sales-filter-card .form-select {
+    min-height: 44px;
+    border: 1px solid rgba(18, 61, 43, 0.15);
+    border-radius: 9px;
+    background-color: rgba(255, 255, 255, 0.75);
+    color: var(--text-dark);
+    font-size: 13px;
+    transition: all 0.25s ease;
+}
+
+.sales-filter-card .input-group-text {
+    border: 1px solid rgba(18, 61, 43, 0.15);
+    background: var(--green-soft);
+    color: var(--green-leaf);
+    border-radius: 9px 0 0 9px;
+}
+
+.sales-filter-card .input-group .form-control {
+    border-radius: 0 9px 9px 0;
+}
+
+.sales-filter-card .form-control:focus,
+.sales-filter-card .form-select:focus {
+    border-color: var(--green-leaf);
+    box-shadow: 0 0 0 3px rgba(85, 169, 107, 0.15);
+    background: #ffffff;
+}
+
+/* =========================================
+   SALES TABLE
+========================================= */
+
+.sales-table-card {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
+}
+
+.sales-table-card .card-body {
+    background: transparent;
+}
+
+.sales-table {
+    min-width: 750px;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+
+.sales-table thead th {
+    background: rgba(18, 61, 43, 0.08);
+    color: var(--green-primary);
+    padding: 17px 18px;
+    border-bottom: 1px solid rgba(18, 61, 43, 0.12);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.sales-table tbody td {
+    padding: 16px 18px;
+    color: var(--text-dark);
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(18, 61, 43, 0.07);
+    white-space: nowrap;
+}
+
+.sales-table tbody tr {
+    transition: background 0.25s ease;
+}
+
+.sales-table tbody tr:hover td {
+    background: rgba(85, 169, 107, 0.09);
+}
+
+.sales-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Table action buttons */
+
+.sales-actions-cell {
+    white-space: nowrap;
+}
+
+.sales-actions-cell .btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.sales-actions-cell .btn-outline-primary {
+    color: var(--green-leaf);
+    border-color: var(--green-leaf);
+}
+
+.sales-actions-cell .btn-outline-primary:hover {
+    background: var(--green-primary);
+    border-color: var(--green-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.sales-actions-cell .btn-outline-danger:hover {
+    transform: translateY(-2px);
+}
+
+/* Empty state */
+
+.sales-empty-state {
+    color: var(--text-muted) !important;
+    font-size: 14px !important;
+    padding: 50px 15px !important;
+    white-space: normal !important;
+}
+
+/* Loading */
+
+.sales-table .spinner-border {
+    color: var(--green-leaf);
+    width: 32px;
+    height: 32px;
+}
+
+/* =========================================
+   PAGINATION
+========================================= */
+
+.sales-pagination {
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.sales-pagination .page-link {
+    min-width: 37px;
+    min-height: 37px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(18, 61, 43, 0.13);
+    border-radius: 9px !important;
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--green-primary);
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.25s ease;
+}
+
+.sales-pagination .page-link:hover {
+    background: var(--green-soft);
+    border-color: var(--green-leaf);
+    color: var(--green-primary);
+}
+
+.sales-pagination .page-item.active .page-link {
+    background: var(--green-primary);
+    border-color: var(--green-primary);
+    color: #ffffff;
+}
+
+.sales-pagination .page-item.disabled .page-link {
+    background: rgba(255, 255, 255, 0.35);
+    color: #aab5ad;
+}
+
+/* =========================================
+   ADD / EDIT MODAL
+========================================= */
+
+.sales-modal .modal-content {
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    overflow: hidden;
+    background: #f7faf7;
+    box-shadow: 0 20px 60px rgba(11, 41, 30, 0.20);
+}
+
+.sales-modal .modal-header {
+    padding: 22px 25px;
+    background: linear-gradient(
+        135deg,
+        var(--green-primary),
+        var(--green-dark)
+    );
+    border-bottom: none;
+}
+
+.sales-modal .modal-title {
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.sales-modal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.sales-modal .modal-body {
+    padding: 25px;
+}
+
+.sales-modal .modal-footer {
+    padding: 17px 25px;
+    background: rgba(237, 244, 239, 0.75);
+    border-top: 1px solid rgba(18, 61, 43, 0.08);
+}
+
+.sales-modal .form-label {
+    color: var(--green-primary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sales-modal .form-control,
+.sales-modal .form-select {
+    min-height: 44px;
+    border: 1px solid rgba(18, 61, 43, 0.16);
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--text-dark);
+    font-size: 13px;
+}
+
+.sales-modal .form-control:focus,
+.sales-modal .form-select:focus {
+    border-color: var(--green-leaf);
+    box-shadow: 0 0 0 3px rgba(85, 169, 107, 0.15);
+}
+
+.sales-modal .btn-success {
+    background: var(--green-primary);
+    border-color: var(--green-primary);
+    border-radius: 9px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sales-modal .btn-success:hover {
+    background: var(--green-leaf);
+    border-color: var(--green-leaf);
+}
+
+.sales-modal .btn-outline-secondary {
+    border-radius: 9px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* =========================================
+   ALERTS
+========================================= */
+
+.sales-page .alert {
+    border-radius: 12px;
+    border: 1px solid rgba(220, 53, 69, 0.15);
+    font-size: 13px;
+    backdrop-filter: blur(12px);
+}
+
+/* =========================================
+   TABLET RESPONSIVENESS
+========================================= */
+
+@media (max-width: 992px) {
+    .sales-page {
+        padding: 24px 20px;
+    }
+
+    .sales-page-title {
+        font-size: 26px;
+    }
+
+    .sales-summary-card .card-body {
+        padding: 20px;
+    }
+
+    .sales-filter-card .card-body {
+        padding: 19px;
+    }
+
+    .sales-table {
+        min-width: 720px;
+    }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+========================================= */
+
+@media (max-width: 768px) {
+    .sales-page {
+        padding: 20px 15px;
+    }
+
+    .sales-page-title {
+        font-size: 24px;
+    }
+
+    .sales-page > div:first-child {
+        align-items: stretch !important;
+    }
+
+    .sales-page > div:first-child .btn-success {
+        width: 100%;
+    }
+
+    .sales-summary-card {
+        border-radius: 16px !important;
+    }
+
+    .sales-summary-card .card-body {
+        padding: 19px;
+    }
+
+    .sales-summary-card h3 {
+        font-size: 24px;
+    }
+
+    .sales-filter-card,
+    .sales-table-card {
+        border-radius: 16px !important;
+    }
+
+    .sales-filter-card .card-body {
+        padding: 17px;
+    }
+
+    .sales-table-card .card-body {
+        overflow-x: auto;
+    }
+
+    .sales-table {
+        min-width: 720px;
+    }
+
+    .sales-table thead th,
+    .sales-table tbody td {
+        padding: 13px 14px;
+    }
+
+    .sales-modal .modal-dialog {
+        margin: 12px;
+    }
+
+    .sales-modal .modal-body {
+        padding: 20px;
+    }
+
+    .sales-pagination {
+        justify-content: center;
+    }
+}
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+    .sales-page {
+        padding: 15px 10px;
+    }
+
+    .sales-page-title {
+        font-size: 22px;
+    }
+
+    .sales-page > div:first-child p {
+        font-size: 12px;
+    }
+
+    .sales-summary-card .card-body {
+        padding: 17px;
+    }
+
+    .sales-summary-card h3 {
+        font-size: 22px;
+    }
+
+    .sales-card-label {
+        font-size: 11px;
+    }
+
+    .sales-filter-card .card-body {
+        padding: 14px;
+    }
+
+    .sales-table thead th,
+    .sales-table tbody td {
+        padding: 12px;
+        font-size: 12px;
+    }
+
+    .sales-actions-cell .btn {
+        width: 31px;
+        height: 31px;
+    }
+
+    .sales-modal .modal-dialog {
+        margin: 8px;
+    }
+
+    .sales-modal .modal-header,
+    .sales-modal .modal-footer {
+        padding: 16px;
+    }
+
+    .sales-modal .modal-body {
+        padding: 17px;
+    }
+
+    .sales-modal .modal-title {
+        font-size: 17px;
+    }
+
+    .sales-pagination .page-link {
+        min-width: 33px;
+        min-height: 33px;
+        font-size: 12px;
+    }
+}

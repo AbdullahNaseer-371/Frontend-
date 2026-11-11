@@ -247,3 +247,17 @@
         padding: 18px;
     }
 }
+.dashboard-clickable-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-clickable-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10);
+}
+
+.dashboard-clickable-card:focus-visible {
+    outline: 3px solid var(--green-primary, #198754);
+    outline-offset: 3px;
+}

@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+
+import { useEffect, useMemo } from "react";
+
 import {
     Alert,
     Badge,
@@ -8,6 +10,7 @@ import {
     Spinner,
     Table,
 } from "react-bootstrap";
+
 import {
     FaEdit,
     FaTrash,
@@ -18,7 +21,7 @@ import usePermissions from "../hooks/usePermission";
 
 const Users = () => {
     const {
-        users,
+        users: usersData,
         loading,
         error,
         fetchUsers,
@@ -26,13 +29,34 @@ const Users = () => {
         clearError,
     } = useAuth();
 
-    const {
-        isAdmin,
-    } = usePermissions();
+    const { isAdmin } = usePermissions();
+
+    // Normalize API/Redux response into an array.
+    const users = useMemo(() => {
+        if (Array.isArray(usersData)) {
+            return usersData;
+        }
+
+        if (Array.isArray(usersData?.users)) {
+            return usersData.users;
+        }
+
+        if (Array.isArray(usersData?.data?.users)) {
+            return usersData.data.users;
+        }
+
+        if (Array.isArray(usersData?.data)) {
+            return usersData.data;
+        }
+
+        return [];
+    }, [usersData]);
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        if (isAdmin) {
+            fetchUsers();
+        }
+    }, [isAdmin]);
 
     if (!isAdmin) {
         return (
@@ -47,21 +71,23 @@ const Users = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Delete this user?")) return;
 
-        await removeUser(id);
-        fetchUsers();
+        try {
+            await removeUser(id);
+            await fetchUsers();
+        } catch (err) {
+            console.error("Failed to delete user:", err);
+        }
     };
 
     return (
         <Container fluid className="dashboard-page">
 
             <div className="mb-4">
-
                 <h2>Users</h2>
 
                 <p className="text-muted mb-0">
                     Manage GreenLeaf staff accounts.
                 </p>
-
             </div>
 
             {error && (
@@ -75,11 +101,9 @@ const Users = () => {
             )}
 
             <Card className="border-0 shadow-sm">
-
                 <Card.Body className="p-0">
 
                     <div className="table-responsive">
-
                         <Table
                             hover
                             responsive
@@ -99,79 +123,67 @@ const Users = () => {
 
                                 {loading ? (
                                     <tr>
-                                        <td
-                                            colSpan="4"
-                                            className="text-center py-5"
-                                        >
-                                            <Spinner />
+                                        <td colSpan="4" className="text-center py-5">
+                                            <Spinner animation="border" />
+                                            <div className="mt-2">
+                                                Loading users...
+                                            </div>
                                         </td>
                                     </tr>
-                                ) : users?.length ? (
-                                    users.map(
-                                        (user, index) => (
-                                            <tr key={user._id}>
+                                ) : users.length > 0 ? (
+                                    users.map((user, index) => (
+                                        <tr key={user._id}>
 
-                                                <td>
-                                                    {index + 1}
-                                                </td>
+                                            <td>{index + 1}</td>
 
-                                                <td>
-                                                    <strong>
-                                                        {user.userName}
-                                                    </strong>
-                                                </td>
+                                            <td>
+                                                <strong>
+                                                    {user.userName || "N/A"}
+                                                </strong>
+                                            </td>
 
-                                                <td>
+                                            <td>
+                                                <Badge
+                                                    bg={
+                                                        user.role === "Admin"
+                                                            ? "danger"
+                                                            : user.role === "Manager"
+                                                                ? "warning"
+                                                                : "secondary"
+                                                    }
+                                                >
+                                                    {user.role || "Employee"}
+                                                </Badge>
+                                            </td>
 
-                                                    <Badge
-                                                        bg={
-                                                            user.role ===
-                                                                "Admin"
-                                                                ? "danger"
-                                                                : user.role ===
-                                                                    "Manager"
-                                                                    ? "warning"
-                                                                    : "secondary"
-                                                        }
-                                                    >
-                                                        {user.role}
-                                                    </Badge>
+                                            <td>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-primary"
+                                                    className="me-2"
+                                                    disabled
+                                                    title="Edit user"
+                                                >
+                                                    <FaEdit />
+                                                </Button>
 
-                                                </td>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-danger"
+                                                    onClick={() => handleDelete(user._id)}
+                                                    title="Delete user"
+                                                >
+                                                    <FaTrash />
+                                                </Button>
+                                            </td>
 
-                                                <td>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline-primary"
-                                                        className="me-2"
-                                                        disabled
-                                                    >
-                                                        <FaEdit />
-                                                    </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline-danger"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                user._id
-                                                            )
-                                                        }
-                                                    >
-                                                        <FaTrash />
-                                                    </Button>
-
-                                                </td>
-
-                                            </tr>
-                                        )
-                                    )
+                                        </tr>
+                                    ))
                                 ) : (
                                     <tr>
                                         <td
                                             colSpan="4"
-                                            className="text-center py-5"
+                                            className="text-center py-5 text-muted"
                                         >
                                             No users found.
                                         </td>
@@ -179,13 +191,10 @@ const Users = () => {
                                 )}
 
                             </tbody>
-
                         </Table>
-
                     </div>
 
                 </Card.Body>
-
             </Card>
 
         </Container>

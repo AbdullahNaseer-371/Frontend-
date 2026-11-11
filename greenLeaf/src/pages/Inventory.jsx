@@ -1,44 +1,46 @@
 
 import { useEffect, useState } from "react";
 
-import {
-    Alert,
-    Badge,
-    Button,
-    Card,
-    Col,
-    Container,
-    Form,
-    InputGroup,
-    Modal,
-    Pagination,
-    Row,
-    Spinner,
-    Table,
-} from "react-bootstrap";
-
-import {
-    FaEdit,
-    FaPlus,
-    FaSearch,
-    FaTrash,
-} from "react-icons/fa";
-
 import usePlants from "../hooks/usePlants";
 import useCategories from "../hooks/useCategory";
 import usePermissions from "../hooks/usePermission";
 
+import InventoryContainer from "./InvenotryConatiner";
+
+const initialFormData = {
+    name: "",
+    category: "",
+    price: "",
+    stock: "",
+    status: "active",
+};
+
 const Inventory = () => {
 
-    // Image states
+    // =====================================
+    // STATES
+    // =====================================
+
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    // Modal states
     const [showModal, setShowModal] = useState(false);
     const [editingPlant, setEditingPlant] = useState(null);
 
-    // Plant hooks
+    const [formData, setFormData] = useState(initialFormData);
+
+    const [filters, setFilters] = useState({
+        search: "",
+        category: "",
+        status: "",
+        page: 1,
+        limit: 10,
+    });
+
+    // =====================================
+    // PLANT HOOK
+    // =====================================
+
     const {
         plants,
         pagination,
@@ -53,48 +55,37 @@ const Inventory = () => {
         clearSuccess,
     } = usePlants();
 
-    // Category hooks
+    // =====================================
+    // CATEGORY HOOK
+    // =====================================
+
     const {
         categories,
         getCategories,
     } = useCategories();
 
-    // Extra safety: always use an array
     const categoryList = Array.isArray(categories)
         ? categories
         : [];
 
-    // Permissions
+    // =====================================
+    // PERMISSIONS
+    // =====================================
+
     const {
         canCreate,
         canUpdate,
         canDelete,
     } = usePermissions();
 
-    // Filters
-    const [filters, setFilters] = useState({
-        search: "",
-        category: "",
-        status: "",
-        page: 1,
-        limit: 10,
-    });
+    // =====================================
+    // LOAD DATA
+    // =====================================
 
-    // Form data
-    const [formData, setFormData] = useState({
-        name: "",
-        category: "",
-        price: "",
-        stock: "",
-        status: "active",
-    });
-
-    // Load categories
     useEffect(() => {
         getCategories();
     }, []);
 
-    // Load plants when filters change
     useEffect(() => {
         getPlants(filters);
     }, [
@@ -105,34 +96,33 @@ const Inventory = () => {
         filters.limit,
     ]);
 
-    // Success handling
+    // =====================================
+    // SUCCESS HANDLING
+    // =====================================
+
     useEffect(() => {
-        if (success) {
-            setShowModal(false);
-            setEditingPlant(null);
+        if (!success) return;
 
-            setFormData({
-                name: "",
-                category: "",
-                price: "",
-                stock: "",
-                status: "active",
-            });
+        setShowModal(false);
+        setEditingPlant(null);
+        setFormData(initialFormData);
 
-            setImage(null);
-            setImagePreview(null);
+        setImage(null);
+        setImagePreview(null);
 
-            getPlants(filters);
+        getPlants(filters);
 
-            const timer = setTimeout(() => {
-                clearSuccess();
-            }, 2500);
+        const timer = setTimeout(() => {
+            clearSuccess();
+        }, 2500);
 
-            return () => clearTimeout(timer);
-        }
+        return () => clearTimeout(timer);
     }, [success]);
 
-    // Image preview cleanup
+    // =====================================
+    // IMAGE PREVIEW CLEANUP
+    // =====================================
+
     useEffect(() => {
         return () => {
             if (imagePreview?.startsWith("blob:")) {
@@ -141,7 +131,10 @@ const Inventory = () => {
         };
     }, [imagePreview]);
 
-    // Filter handler
+    // =====================================
+    // FILTER HANDLER
+    // =====================================
+
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
 
@@ -152,21 +145,20 @@ const Inventory = () => {
         }));
     };
 
-    // Reset form
-    const resetForm = () => {
-        setFormData({
-            name: "",
-            category: "",
-            price: "",
-            stock: "",
-            status: "active",
-        });
+    // =====================================
+    // FORM RESET
+    // =====================================
 
+    const resetForm = () => {
+        setFormData(initialFormData);
         setImage(null);
         setImagePreview(null);
     };
 
-    // Open Add Modal
+    // =====================================
+    // OPEN ADD MODAL
+    // =====================================
+
     const handleOpenAdd = () => {
         setEditingPlant(null);
         resetForm();
@@ -174,7 +166,10 @@ const Inventory = () => {
         setShowModal(true);
     };
 
-    // Open Edit Modal
+    // =====================================
+    // OPEN EDIT MODAL
+    // =====================================
+
     const handleOpenEdit = (plant) => {
         setEditingPlant(plant);
 
@@ -196,7 +191,10 @@ const Inventory = () => {
         setShowModal(true);
     };
 
-    // Image handler
+    // =====================================
+    // IMAGE HANDLER
+    // =====================================
+
     const handleImageChange = (e) => {
         const file = e.target.files?.[0];
 
@@ -224,7 +222,10 @@ const Inventory = () => {
         setImagePreview(URL.createObjectURL(file));
     };
 
-    // Form handler
+    // =====================================
+    // FORM HANDLER
+    // =====================================
+
     const handleFormChange = (e) => {
         const { name, value } = e.target;
 
@@ -234,25 +235,38 @@ const Inventory = () => {
         }));
     };
 
-    // Submit handler
+    // =====================================
+    // SUBMIT HANDLER
+    // =====================================
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!formData.category) {
-            alert("Please select a category.");
-            return;
-        }
 
         if (!formData.name.trim()) {
             alert("Plant name is required.");
             return;
         }
 
+        if (!formData.category) {
+            alert("Please select a category.");
+            return;
+        }
+
         if (
+            formData.price === "" ||
             Number(formData.price) < 0 ||
-            Number(formData.stock) < 0
+            !Number.isFinite(Number(formData.price))
         ) {
-            alert("Price and stock cannot be negative.");
+            alert("Please enter a valid price.");
+            return;
+        }
+
+        if (
+            formData.stock === "" ||
+            Number(formData.stock) < 0 ||
+            !Number.isInteger(Number(formData.stock))
+        ) {
+            alert("Please enter a valid stock quantity.");
             return;
         }
 
@@ -279,7 +293,10 @@ const Inventory = () => {
         }
     };
 
-    // Delete handler
+    // =====================================
+    // DELETE HANDLER
+    // =====================================
+
     const handleDelete = async (id) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this plant?"
@@ -295,7 +312,10 @@ const Inventory = () => {
         }
     };
 
-    // Close modal
+    // =====================================
+    // CLOSE MODAL
+    // =====================================
+
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingPlant(null);
@@ -303,571 +323,55 @@ const Inventory = () => {
         clearError();
     };
 
-    // Pagination
+    // =====================================
+    // PAGINATION
+    // =====================================
+
     const totalPages = pagination?.pages || 1;
 
-    const columnCount =
-        8 + (canUpdate || canDelete ? 1 : 0);
+    // =====================================
+    // RENDER CONTAINER
+    // =====================================
 
     return (
-        <Container fluid className="dashboard-page">
+        <InventoryContainer
+            canCreate={canCreate}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
 
-            {/* Page Header */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            plants={plants}
+            categories={categoryList}
+            pagination={pagination}
 
-                <div>
-                    <h2>Inventory</h2>
+            loading={loading}
+            error={error}
+            success={success}
 
-                    <p className="text-muted mb-0">
-                        Manage GreenLeaf plant inventory.
-                    </p>
-                </div>
+            clearError={clearError}
 
-                {canCreate && (
-                    <Button
-                        variant="success"
-                        onClick={handleOpenAdd}
-                    >
-                        <FaPlus className="me-2" />
-                        Add Plant
-                    </Button>
-                )}
+            filters={filters}
+            setFilters={setFilters}
+            handleFilterChange={handleFilterChange}
 
-            </div>
+            totalPages={totalPages}
 
-            {/* Error Message */}
-            {error && (
-                <Alert
-                    variant="danger"
-                    dismissible
-                    onClose={clearError}
-                >
-                    {error}
-                </Alert>
-            )}
+            handleOpenAdd={handleOpenAdd}
+            handleOpenEdit={handleOpenEdit}
+            handleDelete={handleDelete}
 
-            {/* Success Message */}
-            {success && (
-                <Alert variant="success">
-                    {typeof success === "string"
-                        ? success
-                        : "Operation completed successfully."}
-                </Alert>
-            )}
+            showModal={showModal}
+            setShowModal={setShowModal}
+            handleCloseModal={handleCloseModal}
 
-            {/* Filters */}
-            <Card className="border-0 shadow-sm mb-4">
+            editingPlant={editingPlant}
 
-                <Card.Body>
+            formData={formData}
+            handleFormChange={handleFormChange}
+            handleSubmit={handleSubmit}
 
-                    <Row className="g-3">
-
-                        {/* Search */}
-                        <Col xs={12} md={5}>
-                            <InputGroup>
-                                <InputGroup.Text>
-                                    <FaSearch />
-                                </InputGroup.Text>
-
-                                <Form.Control
-                                    name="search"
-                                    value={filters.search}
-                                    onChange={handleFilterChange}
-                                    placeholder="Search plants..."
-                                />
-                            </InputGroup>
-                        </Col>
-
-                        {/* Category */}
-                        <Col xs={12} md={3}>
-                            <Form.Select
-                                name="category"
-                                value={filters.category}
-                                onChange={handleFilterChange}
-                            >
-                                <option value="">
-                                    All Categories
-                                </option>
-
-                                {categoryList.map((category) => (
-                                    <option
-                                        key={category._id}
-                                        value={category._id}
-                                    >
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </Form.Select>
-                        </Col>
-
-                        {/* Status */}
-                        <Col xs={12} md={2}>
-                            <Form.Select
-                                name="status"
-                                value={filters.status}
-                                onChange={handleFilterChange}
-                            >
-                                <option value="">
-                                    All Status
-                                </option>
-
-                                <option value="active">
-                                    Active
-                                </option>
-
-                                <option value="inactive">
-                                    Inactive
-                                </option>
-                            </Form.Select>
-                        </Col>
-
-                        {/* Limit */}
-                        <Col xs={12} md={2}>
-                            <Form.Select
-                                value={filters.limit}
-                                onChange={(e) =>
-                                    setFilters((prev) => ({
-                                        ...prev,
-                                        limit: Number(e.target.value),
-                                        page: 1,
-                                    }))
-                                }
-                            >
-                                <option value={10}>
-                                    10 / page
-                                </option>
-
-                                <option value={20}>
-                                    20 / page
-                                </option>
-
-                                <option value={50}>
-                                    50 / page
-                                </option>
-                            </Form.Select>
-                        </Col>
-
-                    </Row>
-
-                </Card.Body>
-            </Card>
-
-            {/* Inventory Table */}
-            <Card className="border-0 shadow-sm">
-
-                <Card.Body className="p-0">
-
-                    <div className="table-responsive">
-
-                        <Table
-                            hover
-                            responsive
-                            className="mb-0 align-middle"
-                        >
-
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Plant</th>
-                                    <th>Category</th>
-                                    <th>SKU</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th>Image</th>
-                                    <th>Status</th>
-
-                                    {(canUpdate || canDelete) && (
-                                        <th>Actions</th>
-                                    )}
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                {loading ? (
-
-                                    <tr>
-                                        <td
-                                            colSpan={columnCount}
-                                            className="text-center py-5"
-                                        >
-                                            <Spinner animation="border" />
-                                        </td>
-                                    </tr>
-
-                                ) : Array.isArray(plants) &&
-                                    plants.length > 0 ? (
-
-                                    plants.map((plant, index) => (
-
-                                        <tr key={plant._id}>
-
-                                            <td>
-                                                {((pagination?.page || 1) - 1) *
-                                                    (pagination?.limit || 10) +
-                                                    index + 1}
-                                            </td>
-
-                                            <td>
-                                                <strong>
-                                                    {plant.name}
-                                                </strong>
-                                            </td>
-
-                                            <td>
-                                                {typeof plant.category === "object"
-                                                    ? plant.category?.name || "-"
-                                                    : plant.category || "-"}
-                                            </td>
-
-                                            <td>
-                                                {plant.sku || "-"}
-                                            </td>
-
-                                            <td>
-                                                Rs.{" "}
-                                                {Number(
-                                                    plant.price || 0
-                                                ).toLocaleString()}
-                                            </td>
-
-                                            <td>
-                                                {plant.stock ?? 0}
-                                            </td>
-
-                                            <td>
-                                                {plant.image?.url ? (
-                                                    <img
-                                                        src={plant.image.url}
-                                                        alt={plant.name}
-                                                        style={{
-                                                            width: "55px",
-                                                            height: "55px",
-                                                            objectFit: "cover",
-                                                            borderRadius: "6px",
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    "No Image"
-                                                )}
-                                            </td>
-
-                                            <td>
-                                                <Badge
-                                                    bg={
-                                                        plant.status === "Available"
-                                                            ? "success"
-                                                            : "secondary"
-                                                    }
-                                                >
-                                                    {plant.status || "Unknown"}
-                                                </Badge>
-                                            </td>
-
-                                            {(canUpdate || canDelete) && (
-                                                <td>
-
-                                                    {canUpdate && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-primary"
-                                                            className="me-2"
-                                                            onClick={() =>
-                                                                handleOpenEdit(plant)
-                                                            }
-                                                        >
-                                                            <FaEdit />
-                                                        </Button>
-                                                    )}
-
-                                                    {canDelete && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-danger"
-                                                            onClick={() =>
-                                                                handleDelete(plant._id)
-                                                            }
-                                                        >
-                                                            <FaTrash />
-                                                        </Button>
-                                                    )}
-
-                                                </td>
-                                            )}
-
-                                        </tr>
-
-                                    ))
-
-                                ) : (
-
-                                    <tr>
-                                        <td
-                                            colSpan={columnCount}
-                                            className="text-center py-5"
-                                        >
-                                            No plants found.
-                                        </td>
-                                    </tr>
-
-                                )}
-
-                            </tbody>
-
-                        </Table>
-
-                    </div>
-
-                </Card.Body>
-            </Card>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="d-flex justify-content-center mt-4">
-
-                    <Pagination>
-
-                        <Pagination.Prev
-                            disabled={filters.page <= 1}
-                            onClick={() =>
-                                setFilters((prev) => ({
-                                    ...prev,
-                                    page: prev.page - 1,
-                                }))
-                            }
-                        />
-
-                        {Array.from(
-                            { length: totalPages },
-                            (_, index) => index + 1
-                        ).map((page) => (
-
-                            <Pagination.Item
-                                key={page}
-                                active={page === filters.page}
-                                onClick={() =>
-                                    setFilters((prev) => ({
-                                        ...prev,
-                                        page,
-                                    }))
-                                }
-                            >
-                                {page}
-                            </Pagination.Item>
-
-                        ))}
-
-                        <Pagination.Next
-                            disabled={filters.page >= totalPages}
-                            onClick={() =>
-                                setFilters((prev) => ({
-                                    ...prev,
-                                    page: prev.page + 1,
-                                }))
-                            }
-                        />
-
-                    </Pagination>
-
-                </div>
-            )}
-
-            {/* Add / Edit Modal */}
-            <Modal
-                show={showModal}
-                onHide={handleCloseModal}
-                centered
-            >
-
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        {editingPlant ? "Edit Plant" : "Add Plant"}
-                    </Modal.Title>
-                </Modal.Header>
-
-                <Form onSubmit={handleSubmit}>
-
-                    <Modal.Body>
-
-                        {/* Plant Name */}
-                        <Form.Group className="mb-3">
-                            <Form.Label>
-                                Plant Name
-                            </Form.Label>
-
-                            <Form.Control
-                                name="name"
-                                value={formData.name}
-                                onChange={handleFormChange}
-                                placeholder="Enter plant name"
-                                required
-                            />
-                        </Form.Group>
-
-                        {/* Category */}
-                        <Form.Group className="mb-3">
-                            <Form.Label>
-                                Category
-                            </Form.Label>
-
-                            <Form.Select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleFormChange}
-                                required
-                            >
-                                <option value="">
-                                    Select category
-                                </option>
-
-                                {categoryList.map((category) => (
-                                    <option
-                                        key={category._id}
-                                        value={category._id}
-                                    >
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </Form.Select>
-                        </Form.Group>
-
-                        <Row>
-
-                            {/* Price */}
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>
-                                        Price
-                                    </Form.Label>
-
-                                    <Form.Control
-                                        type="number"
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={handleFormChange}
-                                        min="0"
-                                        step="0.01"
-                                        required
-                                    />
-                                </Form.Group>
-                            </Col>
-
-                            {/* Quantity */}
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>
-                                        Quantity
-                                    </Form.Label>
-
-                                    <Form.Control
-                                        type="number"
-                                        name="stock"
-                                        value={formData.stock}
-                                        onChange={handleFormChange}
-                                        min="0"
-                                        step="1"
-                                        required
-                                    />
-                                </Form.Group>
-                            </Col>
-
-                        </Row>
-
-                        {/* Image */}
-                        <Form.Group className="mb-3">
-                            <Form.Label>
-                                Plant Image
-                            </Form.Label>
-
-                            <Form.Control
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={handleImageChange}
-                            />
-
-                            <Form.Text className="text-muted">
-                                Maximum image size: 5MB.
-                            </Form.Text>
-
-                            {imagePreview && (
-                                <div className="mt-3">
-                                    <img
-                                        src={imagePreview}
-                                        alt="Plant Preview"
-                                        style={{
-                                            width: "150px",
-                                            height: "120px",
-                                            objectFit: "cover",
-                                            borderRadius: "8px",
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </Form.Group>
-
-                        {/* Status */}
-                        <Form.Group>
-                            <Form.Label>
-                                Status
-                            </Form.Label>
-
-                            <Form.Select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleFormChange}
-                            >
-                                <option value="active">
-                                    Available
-                                </option>
-
-                                <option value="inactive">
-                                    Out of stock
-                                </option>
-                                <option value="inactive">
-                                    Reservedx
-                                </option>
-                            </Form.Select>
-                        </Form.Group>
-
-                    </Modal.Body>
-
-                    <Modal.Footer>
-
-                        <Button
-                            variant="secondary"
-                            onClick={handleCloseModal}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            type="submit"
-                            variant="success"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <Spinner
-                                        size="sm"
-                                        className="me-2"
-                                    />
-                                    Saving...
-                                </>
-                            ) : (
-                                editingPlant
-                                    ? "Update Plant"
-                                    : "Add Plant"
-                            )}
-                        </Button>
-
-                    </Modal.Footer>
-
-                </Form>
-
-            </Modal>
-
-        </Container>
+            handleImageChange={handleImageChange}
+            imagePreview={imagePreview}
+        />
     );
 };
 

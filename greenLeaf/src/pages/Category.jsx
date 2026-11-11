@@ -1,23 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-    Alert,
-    Button,
-    Card,
-    Col,
-    Container,
-    Form,
-    Modal,
-    Row,
-    Spinner,
-    Table,
-} from "react-bootstrap";
-import {
-    FaEdit,
-    FaPlus,
-    FaTrash,
-} from "react-icons/fa";
-
 import useCategories from "../hooks/useCategory";
+import CategoriesContainer from "./CatgeoryConatiner";
 import usePermissions from "../hooks/usePermission";
 
 const Categories = () => {
@@ -34,16 +17,13 @@ const Categories = () => {
         clearSuccess,
     } = useCategories();
 
-    const {
-        canCreate,
-        canUpdate,
-        canDelete,
-    } = usePermissions();
+    const { canCreate, canUpdate, canDelete } = usePermissions();
 
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -51,34 +31,47 @@ const Categories = () => {
 
     useEffect(() => {
         getCategories();
-    }, []);
+    }, [getCategories]);
+
+    // Release temporary browser image URLs when they are replaced or removed.
+    useEffect(() => {
+        return () => {
+            if (imagePreview?.startsWith("blob:")) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
 
     useEffect(() => {
-        if (success) {
-            setShowModal(false);
-            setEditingCategory(null);
+        if (!success) return;
 
-            setFormData({
-                name: "",
-                description: "",
-            });
-
-            getCategories();
-            clearSuccess();
-        }
-    }, [success]);
-
-    const openAdd = () => {
+        setShowModal(false);
         setEditingCategory(null);
+        setImage(null);
+        setImagePreview(null);
 
         setFormData({
             name: "",
             description: "",
         });
 
+        getCategories();
+        clearSuccess();
+    }, [success, getCategories, clearSuccess]);
+
+    const resetForm = () => {
+        setEditingCategory(null);
         setImage(null);
         setImagePreview(null);
 
+        setFormData({
+            name: "",
+            description: "",
+        });
+    };
+
+    const openAdd = () => {
+        resetForm();
         setShowModal(true);
     };
 
@@ -92,26 +85,12 @@ const Categories = () => {
 
         setImage(null);
         setImagePreview(category.image?.url || null);
-
         setShowModal(true);
     };
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
 
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-            alert("Please select a valid image.");
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            alert("Image size must be less than 5MB.");
-            return;
-        }
-
-        setImage(file);
-        setImagePreview(URL.createObjectURL(file));
+    const closeModal = () => {
+        setShowModal(false);
+        resetForm();
     };
 
     const handleChange = (e) => {
@@ -123,13 +102,45 @@ const Categories = () => {
         }));
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Please select a JPG, PNG, or WEBP image.");
+            e.target.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image size must be less than 5MB.");
+            e.target.value = "";
+            return;
+        }
+
+        setImage(file);
+        setImagePreview(URL.createObjectURL(file));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!formData.name.trim()) {
+            alert("Category name is required.");
+            return;
+        }
+
         const data = new FormData();
 
-        data.append("name", formData.name);
-        data.append("description", formData.description);
+        data.append("name", formData.name.trim());
+        data.append("description", formData.description.trim());
 
         if (image) {
             data.append("image", image);
@@ -143,273 +154,37 @@ const Categories = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Delete this category?")) return;
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this category?"
+        );
+
+        if (!confirmed) return;
 
         await removeCategory(id);
-        getCategories();
+        await getCategories();
     };
 
     return (
-        <Container fluid className="dashboard-page">
-
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-
-                <div>
-                    <h2>Categories</h2>
-
-                    <p className="text-muted mb-0">
-                        Manage plant categories.
-                    </p>
-                </div>
-
-                {canCreate && (
-                    <Button
-                        variant="success"
-                        onClick={openAdd}
-                    >
-                        <FaPlus className="me-2" />
-                        Add Category
-                    </Button>
-                )}
-
-            </div>
-
-            {error && (
-                <Alert
-                    variant="danger"
-                    dismissible
-                    onClose={clearError}
-                >
-                    {error}
-                </Alert>
-            )}
-
-            <Card className="border-0 shadow-sm">
-
-                <Card.Body className="p-0">
-
-                    <div className="table-responsive">
-
-                        <Table
-                            hover
-                            responsive
-                            className="mb-0"
-                        >
-
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Image</th>
-                                    {(canUpdate || canDelete) && (
-                                        <th>Actions</th>
-                                    )}
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                {loading ? (
-                                    <tr>
-                                        <td
-                                            colSpan="4"
-                                            className="text-center py-5"
-                                        >
-                                            <Spinner />
-                                        </td>
-                                    </tr>
-                                ) : categories?.length ? (
-                                    categories.map(
-                                        (category, index) => (
-                                            <tr key={category._id}>
-
-                                                <td>
-                                                    {index + 1}
-                                                </td>
-
-                                                <td>
-                                                    <strong>
-                                                        {category.name}
-                                                    </strong>
-                                                </td>
-
-                                                <td>
-                                                    {category.description ||
-                                                        "-"}
-                                                </td>
-                                                <td>
-                                                    {category.image?.url ? (
-                                                        <img
-                                                            src={category.image.url}
-                                                            alt={category.name}
-                                                            style={{
-                                                                width: "55px",
-                                                                height: "55px",
-                                                                objectFit: "cover",
-                                                                borderRadius: "6px",
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        "No Image"
-                                                    )}
-                                                </td>
-
-                                                {(canUpdate || canDelete) && (
-                                                    <td>
-
-                                                        {canUpdate && (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline-primary"
-                                                                className="me-2"
-                                                                onClick={() =>
-                                                                    openEdit(
-                                                                        category
-                                                                    )
-                                                                }
-                                                            >
-                                                                <FaEdit />
-                                                            </Button>
-                                                        )}
-
-                                                        {canDelete && (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline-danger"
-                                                                onClick={() =>
-                                                                    handleDelete(
-                                                                        category._id
-                                                                    )
-                                                                }
-                                                            >
-                                                                <FaTrash />
-                                                            </Button>
-                                                        )}
-
-                                                    </td>
-                                                )}
-
-                                            </tr>
-                                        )
-                                    )
-                                ) : (
-                                    <tr>
-                                        <td
-                                            colSpan="4"
-                                            className="text-center py-5"
-                                        >
-                                            No categories found.
-                                        </td>
-                                    </tr>
-                                )}
-
-                            </tbody>
-
-                        </Table>
-
-                    </div>
-
-                </Card.Body>
-            </Card>
-
-            <Modal
-                show={showModal}
-                onHide={() => setShowModal(false)}
-                centered
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        {editingCategory
-                            ? "Edit Category"
-                            : "Add Category"}
-                    </Modal.Title>
-                </Modal.Header>
-
-                <Form onSubmit={handleSubmit}>
-
-                    <Modal.Body>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>
-                                Category Name
-                            </Form.Label>
-
-                            <Form.Control
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Form.Group>
-
-                        <Form.Group>
-                            <Form.Label>
-                                Description
-                            </Form.Label>
-
-                            <Form.Control
-                                as="textarea"
-                                rows={4}
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mt-3">
-                            <Form.Label>Category Image</Form.Label>
-
-                            <Form.Control
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={handleImageChange}
-                            />
-
-                            {imagePreview && (
-                                <div className="mt-3">
-                                    <img
-                                        src={imagePreview}
-                                        alt="Category Preview"
-                                        style={{
-                                            width: "150px",
-                                            height: "120px",
-                                            objectFit: "cover",
-                                            borderRadius: "8px",
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </Form.Group>
-
-                    </Modal.Body>
-
-                    <Modal.Footer>
-
-                        <Button
-                            variant="secondary"
-                            onClick={() => setShowModal(false)}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            type="submit"
-                            variant="success"
-                            disabled={loading}
-                        >
-                            {loading
-                                ? "Saving..."
-                                : editingCategory
-                                    ? "Update Category"
-                                    : "Add Category"}
-                        </Button>
-
-                    </Modal.Footer>
-
-                </Form>
-            </Modal>
-
-        </Container>
+        <CategoriesContainer
+            categories={categories}
+            loading={loading}
+            error={error}
+            showModal={showModal}
+            editingCategory={editingCategory}
+            formData={formData}
+            imagePreview={imagePreview}
+            canCreate={canCreate}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
+            onAdd={openAdd}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            onClose={closeModal}
+            onChange={handleChange}
+            onImageChange={handleImageChange}
+            onSubmit={handleSubmit}
+            onClearError={clearError}
+        />
     );
 };
 

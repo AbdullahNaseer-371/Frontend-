@@ -1,0 +1,92 @@
+.revenue-header h2 {
+    color: var(--text-dark, #1f2937);
+    font-weight: 700;
+    margin: 6px 0;
+}
+
+.revenue-header p {
+    color: var(--text-muted, #6b7280);
+    margin: 0;
+}
+
+.revenue-filter-card,
+.revenue-summary-card,
+.revenue-chart-card {
+    border: 1px solid var(--glass-border, #e5e7eb);
+    border-radius: 14px;
+    box-shadow: var(--glass-shadow, 0 4px 15px rgba(0, 0, 0, 0.05));
+}
+
+.revenue-summary-card {
+    background: var(--glass-bg, #fff);
+}
+
+.revenue-summary-card span {
+    color: var(--text-muted, #6b7280);
+    font-size: 0.9rem;
+}
+
+.revenue-summary-card h3 {
+    margin: 12px 0 0;
+    font-weight: 700;
+    color: var(--green-dark, #14532d);
+}
+
+.revenue-chart-card h5 {
+    color: var(--text-dark, #1f2937);
+    font-weight: 700;
+}
+
+.revenue-chart {
+    width: 100%;
+    height: 350px;
+}
+
+.revenue-loading,
+.revenue-empty {
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-muted, #6b7280);
+}
+
+.revenue-filter-card .form-label {
+    font-weight: 600;
+    color: var(--text-dark, #1f2937);
+}
+
+@media (max-width: 576px) {
+    .revenue-chart {
+        height: 280px;
+    }
+}.revenue-period {
+    background: var(--green-soft, #edf7f0);
+    color: var(--green-dark, #14532d);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.revenue-chart-card {
+    overflow: hidden;
+}
+
+.revenue-chart-card h5 {
+    font-weight: 700;
+    color: var(--text-dark, #1f2937);
+}
+
+.revenue-chart {
+    width: 100%;
+    height: 350px;
+}
+
+@media (max-width: 576px) {
+    .revenue-chart {
+        height: 280px;
+    }
+}
