@@ -698,8 +698,10 @@ const InventoryContainer = ({
                                 value={formData.status}
                                 onChange={handleFormChange}
                             >
-                                <option value="active">Available</option>
+                                <option value="Available">Available</option>
                                 <option value="inactive">Inactive</option>
+                                <option value="Reserved">Reserved</option>
+                                <option value="Out of stock">Out of stock</option>
                             </Form.Select>
                         </Form.Group>
 
