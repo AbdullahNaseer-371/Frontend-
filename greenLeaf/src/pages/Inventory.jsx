@@ -12,7 +12,7 @@ const initialFormData = {
     category: "",
     price: "",
     stock: "",
-    status: "active",
+    status: "Available",
 };
 
 const Inventory = () => {
@@ -181,7 +181,7 @@ const Inventory = () => {
                 "",
             price: plant.price ?? "",
             stock: plant.stock ?? "",
-            status: plant.status || "active",
+            status: plant.status || "Available",
         });
 
         setImage(null);

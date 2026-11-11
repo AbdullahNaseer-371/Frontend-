@@ -63,7 +63,14 @@ const InventoryContainer = ({
 
     const currentPage = pagination?.page || filters.page || 1;
     const currentLimit = pagination?.limit || filters.limit || 10;
-
+    const statusOptions = [
+        "Available",
+        "Out of stock",
+        "Reserved",
+        "Inactive",
+        "Discontinued",
+        "Coming Soon"
+    ];
     return (
         <Container fluid className="dashboard-page inventory-page">
 
@@ -269,8 +276,12 @@ const InventoryContainer = ({
                                 aria-label="Filter by status"
                             >
                                 <option value="">All Status</option>
-                                <option value="active">Available</option>
-                                <option value="inactive">Inactive</option>
+
+                                {statusOptions.map((status) => (
+                                    <option key={status} value={status}>
+                                        {status}
+                                    </option>
+                                ))}
                             </Form.Select>
                         </Col>
 
